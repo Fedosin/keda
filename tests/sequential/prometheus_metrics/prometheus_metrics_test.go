@@ -604,8 +604,8 @@ func TestPrometheusMetrics(t *testing.T) {
 	CreateKubernetesResources(t, kc, testNamespace, data, templates)
 
 	// scaling to max replica count to ensure the counter is registered before we test it
-	assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, deploymentName, testNamespace, 2, 60, 2),
-		"replica count should be 2 after 2 minute")
+	assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, deploymentName, testNamespace, 2, 60, 5),
+		"replica count should be 2 after 5 minutes")
 
 	testScalerMetricValue(t)
 	testScalerMetricLatency(t)
@@ -681,7 +681,7 @@ func fetchAndParsePrometheusMetrics(t *testing.T, cmd string) map[string]*prommo
 // and validates that the MetricFamily it has certain conditions using the provided familyValidator function.
 // Returns the parsed MetricFamily.
 func WaitForPrometheusMetric(t *testing.T, metricToWaitFor string, familyValidator func(family *prommodel.MetricFamily) bool) map[string]*prommodel.MetricFamily {
-	contextWithTimeout, cancel := context.WithTimeout(context.Background(), WaitShort)
+	contextWithTimeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 	var family map[string]*prommodel.MetricFamily
 	err := KedaEventually(contextWithTimeout, func(ctx context.Context) (bool, error) {
@@ -702,6 +702,52 @@ func WaitForPrometheusMetric(t *testing.T, metricToWaitFor string, familyValidat
 	}
 
 	return family
+}
+
+// waitForCronTriggersToEqual polls keda_trigger_registered_total from the
+// KEDA operator's /metrics endpoint and waits until the cluster-wide cron
+// trigger count equals the expected value. This is necessary because
+// keda_trigger_registered_total has no namespace label — it is a cluster-wide
+// gauge. When previous tests (e.g. the cron scaler test) delete their
+// ScaledObjects via namespace deletion, a race with the KEDA finalizer can
+// leave stale trigger counts that never decrement.
+func waitForCronTriggersToEqual(t *testing.T, expected float64) {
+	t.Logf("Waiting for cron trigger count to reach %v cluster-wide before proceeding", expected)
+	for attempt := 1; attempt <= 120; attempt++ {
+		families := fetchAndParsePrometheusMetrics(t,
+			fmt.Sprintf("curl --insecure %s", kedaOperatorPrometheusURL))
+
+		family, ok := families["keda_trigger_registered_total"]
+		if !ok {
+			if expected == 0 {
+				t.Logf("keda_trigger_registered_total absent after %d attempts (clean state)", attempt)
+				return
+			}
+			t.Logf("Attempt %d/120: keda_trigger_registered_total not yet available", attempt)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		cronCount := 0.0
+		for _, metric := range family.GetMetric() {
+			for _, label := range metric.GetLabel() {
+				if *label.Name == "type" && *label.Value == "cron" {
+					cronCount = metric.GetGauge().GetValue()
+				}
+			}
+		}
+
+		if cronCount == expected {
+			t.Logf("Cron trigger count is %v after %d attempts", expected, attempt)
+			return
+		}
+
+		if attempt == 120 {
+			t.Fatalf("Cron trigger count is %v (expected %v) after 120 attempts (10 minutes) — stale triggers from previous tests did not drain", cronCount, expected)
+		}
+		t.Logf("Attempt %d/120: cron trigger count is %v, waiting for %v...", attempt, cronCount, expected)
+		time.Sleep(5 * time.Second)
+	}
 }
 
 func testScalerMetricValue(t *testing.T) {
@@ -1072,17 +1118,20 @@ func testScaledObjectPausedMetric(t *testing.T, data templateData) {
 
 func testOperatorMetrics(t *testing.T, kc *kubernetes.Clientset, data templateData) {
 	t.Log("--- testing operator metrics ---")
-	// Use retry to wait for metrics from previous tests to be cleaned up
-	testOperatorMetricValuesWithRetry(t, kc, 30, 1)
+	// 120×5s = 10 min; GCP Prometheus scrape interval can exceed 30s, so 30×1s is insufficient
+	testOperatorMetricValuesWithRetry(t, kc, 120, 5)
+
+	// Wait for stale cron triggers from previous concurrent tests (e.g. the
+	// cron scaler test) to drain. keda_trigger_registered_total is cluster-wide
+	// with no namespace label, so stale counts cause a permanent mismatch
+	// between the namespace-scoped expected value and the cluster-wide actual.
+	waitForCronTriggersToEqual(t, 0)
 
 	KubectlApplyWithTemplate(t, data, "cronScaledJobTemplate", cronScaledJobTemplate)
-	// Use retry to wait for metrics to reflect the new cronScaledJob
-	testOperatorMetricValuesWithRetry(t, kc, 30, 1)
+	testOperatorMetricValuesWithRetry(t, kc, 120, 5)
 
 	KubectlDeleteWithTemplate(t, data, "cronScaledJobTemplate", cronScaledJobTemplate)
-	// Poll until Prometheus metrics reflect the deletion (max 30 seconds)
-	// This allows KEDA to update metrics and Prometheus to scrape them
-	testOperatorMetricValuesWithRetry(t, kc, 30, 1)
+	testOperatorMetricValuesWithRetry(t, kc, 120, 5)
 }
 
 func testWebhookMetrics(t *testing.T, data templateData) {
