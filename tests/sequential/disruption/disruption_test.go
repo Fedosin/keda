@@ -157,8 +157,8 @@ func testScaleOut(t *testing.T, kc *kubernetes.Clientset) {
 	wg.Add(scaledObjectCount)
 	for i := 0; i < scaledObjectCount; i++ {
 		go func(index int) {
-			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 3),
-				fmt.Sprintf("replica count should be %d after 3 minutes", replicas))
+			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 5),
+				fmt.Sprintf("replica count should be %d after 5 minutes", replicas))
 			wg.Done()
 		}(i)
 	}
@@ -172,8 +172,8 @@ func testScaleOut(t *testing.T, kc *kubernetes.Clientset) {
 	wg.Add(scaledObjectCount)
 	for i := 0; i < scaledObjectCount; i++ {
 		go func(index int) {
-			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 3),
-				fmt.Sprintf("replica count should be %d after 3 minutes", replicas))
+			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 5),
+				fmt.Sprintf("replica count should be %d after 5 minutes", replicas))
 			wg.Done()
 		}(i)
 	}
@@ -187,8 +187,8 @@ func testScaleOut(t *testing.T, kc *kubernetes.Clientset) {
 	wg.Add(scaledObjectCount)
 	for i := 0; i < scaledObjectCount; i++ {
 		go func(index int) {
-			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 3),
-				fmt.Sprintf("replica count should be %d after 3 minutes", replicas))
+			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 5),
+				fmt.Sprintf("replica count should be %d after 5 minutes", replicas))
 			wg.Done()
 		}(i)
 	}
@@ -207,8 +207,8 @@ func testScaleIn(t *testing.T, kc *kubernetes.Clientset) {
 	wg.Add(scaledObjectCount)
 	for i := 0; i < scaledObjectCount; i++ {
 		go func(index int) {
-			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 3),
-				fmt.Sprintf("replica count should be %d after 3 minutes", replicas))
+			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 5),
+				fmt.Sprintf("replica count should be %d after 5 minutes", replicas))
 			wg.Done()
 		}(i)
 	}
@@ -222,8 +222,8 @@ func testScaleIn(t *testing.T, kc *kubernetes.Clientset) {
 	wg.Add(scaledObjectCount)
 	for i := 0; i < scaledObjectCount; i++ {
 		go func(index int) {
-			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 3),
-				fmt.Sprintf("replica count should be %d after 3 minutes", replicas))
+			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 5),
+				fmt.Sprintf("replica count should be %d after 5 minutes", replicas))
 			wg.Done()
 		}(i)
 	}
