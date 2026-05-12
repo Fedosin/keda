@@ -1,6 +1,8 @@
 module github.com/kedacore/keda/v2
 
-go 1.26.0
+go 1.25.0
+
+toolchain go1.25.9
 
 replace (
 	// pin k8s.io to v0.35.5 & sigs.k8s.io/controller-runtime to v0.23.3
@@ -139,9 +141,9 @@ require (
 	k8s.io/metrics v0.35.0
 	k8s.io/utils v0.0.0-20260319190234-28399d86e0b5
 	sigs.k8s.io/controller-runtime v0.23.3
-	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.24.1
-	sigs.k8s.io/controller-tools v0.21.0
-	sigs.k8s.io/custom-metrics-apiserver v1.35.0
+	sigs.k8s.io/controller-runtime/tools/setup-envtest v0.0.0-20260126224948-cf2e741fe0fd
+	sigs.k8s.io/controller-tools v0.20.1
+	sigs.k8s.io/custom-metrics-apiserver v1.34.0
 	sigs.k8s.io/kustomize/kustomize/v5 v5.8.1
 )
 
