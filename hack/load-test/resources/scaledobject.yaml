@@ -1,0 +1,43 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: workload-target
+  namespace: keda
+  labels:
+    app: workload-target
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: workload-target
+  template:
+    metadata:
+      labels:
+        app: workload-target
+    spec:
+      containers:
+        - name: pause
+          image: registry.k8s.io/pause:3.10
+          resources:
+            requests:
+              cpu: 1m
+              memory: 4Mi
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: load-test-trigger
+  namespace: keda
+spec:
+  scaleTargetRef:
+    name: workload-target
+  pollingInterval: 5
+  cooldownPeriod: 5
+  minReplicaCount: 0
+  maxReplicaCount: 1
+  triggers:
+    - type: kubernetes-workload
+      metadata:
+        podSelector: 'load-test=true'
+        value: '100'

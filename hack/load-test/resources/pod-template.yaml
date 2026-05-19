@@ -1,0 +1,1569 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fake-pod-${RESOURCE_INDEX}
+  namespace: ${TEST_NAMESPACE}
+  labels:
+    app: fake-pod
+    load-test: "true"
+    label-1: "val-1"
+    label-2: "val-2"
+    label-3: "val-3"
+    label-4: "val-4"
+    label-5: "val-5"
+    label-6: "val-6"
+    label-7: "val-7"
+    label-8: "val-8"
+    label-9: "val-9"
+    label-10: "val-10"
+    label-11: "val-11"
+    label-12: "val-12"
+    label-13: "val-13"
+    label-14: "val-14"
+    label-15: "val-15"
+    label-16: "val-16"
+    label-17: "val-17"
+    label-18: "val-18"
+    label-19: "val-19"
+    label-20: "val-20"
+    label-21: "val-21"
+    label-22: "val-22"
+    label-23: "val-23"
+    label-24: "val-24"
+    label-25: "val-25"
+    label-26: "val-26"
+    label-27: "val-27"
+    label-28: "val-28"
+    label-29: "val-29"
+    label-30: "val-30"
+    label-31: "val-31"
+    label-32: "val-32"
+    label-33: "val-33"
+    label-34: "val-34"
+    label-35: "val-35"
+    label-36: "val-36"
+    label-37: "val-37"
+    label-38: "val-38"
+    label-39: "val-39"
+    label-40: "val-40"
+    label-41: "val-41"
+    label-42: "val-42"
+    label-43: "val-43"
+    label-44: "val-44"
+    label-45: "val-45"
+    label-46: "val-46"
+    label-47: "val-47"
+    label-48: "val-48"
+    label-49: "val-49"
+    label-50: "val-50"
+    label-51: "val-51"
+    label-52: "val-52"
+    label-53: "val-53"
+    label-54: "val-54"
+    label-55: "val-55"
+    label-56: "val-56"
+    label-57: "val-57"
+    label-58: "val-58"
+    label-59: "val-59"
+    label-60: "val-60"
+    label-61: "val-61"
+    label-62: "val-62"
+    label-63: "val-63"
+    label-64: "val-64"
+    label-65: "val-65"
+    label-66: "val-66"
+    label-67: "val-67"
+    label-68: "val-68"
+    label-69: "val-69"
+    label-70: "val-70"
+    label-71: "val-71"
+    label-72: "val-72"
+    label-73: "val-73"
+    label-74: "val-74"
+    label-75: "val-75"
+    label-76: "val-76"
+    label-77: "val-77"
+    label-78: "val-78"
+    label-79: "val-79"
+    label-80: "val-80"
+    label-81: "val-81"
+    label-82: "val-82"
+    label-83: "val-83"
+    label-84: "val-84"
+    label-85: "val-85"
+    label-86: "val-86"
+    label-87: "val-87"
+    label-88: "val-88"
+    label-89: "val-89"
+    label-90: "val-90"
+    label-91: "val-91"
+    label-92: "val-92"
+  annotations:
+    load-test/description: "KWOK fake pod for memory load testing"
+    load-test/created-by: "run-test.sh"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/metrics"
+    kubectl.kubernetes.io/last-applied-configuration: ""
+    sidecar.istio.io/inject: "false"
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
+    annotation-1: "annval-1"
+    annotation-2: "annval-2"
+    annotation-3: "annval-3"
+    annotation-4: "annval-4"
+    annotation-5: "annval-5"
+    annotation-6: "annval-6"
+    annotation-7: "annval-7"
+    annotation-8: "annval-8"
+    annotation-9: "annval-9"
+    annotation-10: "annval-10"
+    annotation-11: "annval-11"
+    annotation-12: "annval-12"
+    annotation-13: "annval-13"
+    annotation-14: "annval-14"
+    annotation-15: "annval-15"
+    annotation-16: "annval-16"
+    annotation-17: "annval-17"
+    annotation-18: "annval-18"
+    annotation-19: "annval-19"
+    annotation-20: "annval-20"
+    annotation-21: "annval-21"
+    annotation-22: "annval-22"
+    annotation-23: "annval-23"
+    annotation-24: "annval-24"
+    annotation-25: "annval-25"
+    annotation-26: "annval-26"
+    annotation-27: "annval-27"
+    annotation-28: "annval-28"
+    annotation-29: "annval-29"
+    annotation-30: "annval-30"
+    annotation-31: "annval-31"
+    annotation-32: "annval-32"
+    annotation-33: "annval-33"
+    annotation-34: "annval-34"
+    annotation-35: "annval-35"
+    annotation-36: "annval-36"
+    annotation-37: "annval-37"
+    annotation-38: "annval-38"
+    annotation-39: "annval-39"
+    annotation-40: "annval-40"
+    annotation-41: "annval-41"
+    annotation-42: "annval-42"
+    annotation-43: "annval-43"
+    annotation-44: "annval-44"
+    annotation-45: "annval-45"
+    annotation-46: "annval-46"
+    annotation-47: "annval-47"
+    annotation-48: "annval-48"
+    annotation-49: "annval-49"
+    annotation-50: "annval-50"
+    annotation-51: "annval-51"
+    annotation-52: "annval-52"
+    annotation-53: "annval-53"
+    annotation-54: "annval-54"
+    annotation-55: "annval-55"
+    annotation-56: "annval-56"
+    annotation-57: "annval-57"
+    annotation-58: "annval-58"
+    annotation-59: "annval-59"
+    annotation-60: "annval-60"
+    annotation-61: "annval-61"
+    annotation-62: "annval-62"
+    annotation-63: "annval-63"
+    annotation-64: "annval-64"
+    annotation-65: "annval-65"
+    annotation-66: "annval-66"
+    annotation-67: "annval-67"
+    annotation-68: "annval-68"
+    annotation-69: "annval-69"
+    annotation-70: "annval-70"
+    annotation-71: "annval-71"
+    annotation-72: "annval-72"
+    annotation-73: "annval-73"
+    annotation-74: "annval-74"
+    annotation-75: "annval-75"
+    annotation-76: "annval-76"
+    annotation-77: "annval-77"
+    annotation-78: "annval-78"
+    annotation-79: "annval-79"
+    annotation-80: "annval-80"
+    annotation-81: "annval-81"
+    annotation-82: "annval-82"
+    annotation-83: "annval-83"
+    annotation-84: "annval-84"
+    annotation-85: "annval-85"
+    annotation-86: "annval-86"
+    annotation-87: "annval-87"
+    annotation-88: "annval-88"
+    annotation-89: "annval-89"
+    annotation-90: "annval-90"
+    annotation-91: "annval-91"
+spec:
+  nodeName: ${KWOK_NODE_NAME}
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 30
+  dnsPolicy: ClusterFirst
+  serviceAccountName: default
+  automountServiceAccountToken: false
+  tolerations:
+    - key: kwok.x-k8s.io/node
+      value: fake
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app: fake-pod
+            topologyKey: kubernetes.io/hostname
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: fake-pod
+  initContainers:
+    - name: init-a
+      image: europe-docker.pkg.dev/kyma-project/prod/external/library/golang:1.26.2-alpine3.23
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      env:
+        - name: INIT_PHASE
+          value: "a"
+        - name: INIT_A_ENV_1
+          value: "value-INIT_A-1"
+        - name: INIT_A_ENV_2
+          value: "value-INIT_A-2"
+        - name: INIT_A_ENV_3
+          value: "value-INIT_A-3"
+        - name: INIT_A_ENV_4
+          value: "value-INIT_A-4"
+        - name: INIT_A_ENV_5
+          value: "value-INIT_A-5"
+        - name: INIT_A_ENV_6
+          value: "value-INIT_A-6"
+        - name: INIT_A_ENV_7
+          value: "value-INIT_A-7"
+        - name: INIT_A_ENV_8
+          value: "value-INIT_A-8"
+        - name: INIT_A_ENV_9
+          value: "value-INIT_A-9"
+        - name: INIT_A_ENV_10
+          value: "value-INIT_A-10"
+        - name: INIT_A_ENV_11
+          value: "value-INIT_A-11"
+        - name: INIT_A_ENV_12
+          value: "value-INIT_A-12"
+        - name: INIT_A_ENV_13
+          value: "value-INIT_A-13"
+        - name: INIT_A_ENV_14
+          value: "value-INIT_A-14"
+        - name: INIT_A_ENV_15
+          value: "value-INIT_A-15"
+        - name: INIT_A_ENV_16
+          value: "value-INIT_A-16"
+        - name: INIT_A_ENV_17
+          value: "value-INIT_A-17"
+        - name: INIT_A_ENV_18
+          value: "value-INIT_A-18"
+        - name: INIT_A_ENV_19
+          value: "value-INIT_A-19"
+        - name: INIT_A_ENV_20
+          value: "value-INIT_A-20"
+        - name: INIT_A_ENV_21
+          value: "value-INIT_A-21"
+        - name: INIT_A_ENV_22
+          value: "value-INIT_A-22"
+        - name: INIT_A_ENV_23
+          value: "value-INIT_A-23"
+        - name: INIT_A_ENV_24
+          value: "value-INIT_A-24"
+        - name: INIT_A_ENV_25
+          value: "value-INIT_A-25"
+        - name: INIT_A_ENV_26
+          value: "value-INIT_A-26"
+        - name: INIT_A_ENV_27
+          value: "value-INIT_A-27"
+        - name: INIT_A_ENV_28
+          value: "value-INIT_A-28"
+        - name: INIT_A_ENV_29
+          value: "value-INIT_A-29"
+        - name: INIT_A_ENV_30
+          value: "value-INIT_A-30"
+        - name: INIT_A_ENV_31
+          value: "value-INIT_A-31"
+        - name: INIT_A_ENV_32
+          value: "value-INIT_A-32"
+        - name: INIT_A_ENV_33
+          value: "value-INIT_A-33"
+        - name: INIT_A_ENV_34
+          value: "value-INIT_A-34"
+        - name: INIT_A_ENV_35
+          value: "value-INIT_A-35"
+        - name: INIT_A_ENV_36
+          value: "value-INIT_A-36"
+        - name: INIT_A_ENV_37
+          value: "value-INIT_A-37"
+        - name: INIT_A_ENV_38
+          value: "value-INIT_A-38"
+        - name: INIT_A_ENV_39
+          value: "value-INIT_A-39"
+        - name: INIT_A_ENV_40
+          value: "value-INIT_A-40"
+        - name: INIT_A_ENV_41
+          value: "value-INIT_A-41"
+        - name: INIT_A_ENV_42
+          value: "value-INIT_A-42"
+        - name: INIT_A_ENV_43
+          value: "value-INIT_A-43"
+        - name: INIT_A_ENV_44
+          value: "value-INIT_A-44"
+        - name: INIT_A_ENV_45
+          value: "value-INIT_A-45"
+        - name: INIT_A_ENV_46
+          value: "value-INIT_A-46"
+        - name: INIT_A_ENV_47
+          value: "value-INIT_A-47"
+        - name: INIT_A_ENV_48
+          value: "value-INIT_A-48"
+        - name: INIT_A_ENV_49
+          value: "value-INIT_A-49"
+        - name: INIT_A_ENV_50
+          value: "value-INIT_A-50"
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        - name: vol-0
+          mountPath: /data/init-a/vol-0
+        - name: vol-1
+          mountPath: /data/init-a/vol-1
+        - name: vol-2
+          mountPath: /data/init-a/vol-2
+        - name: vol-3
+          mountPath: /data/init-a/vol-3
+        - name: vol-4
+          mountPath: /data/init-a/vol-4
+        - name: vol-5
+          mountPath: /data/init-a/vol-5
+        - name: vol-6
+          mountPath: /data/init-a/vol-6
+        - name: vol-7
+          mountPath: /data/init-a/vol-7
+        - name: vol-8
+          mountPath: /data/init-a/vol-8
+        - name: vol-9
+          mountPath: /data/init-a/vol-9
+        - name: vol-10
+          mountPath: /data/init-a/vol-10
+        - name: vol-11
+          mountPath: /data/init-a/vol-11
+        - name: vol-12
+          mountPath: /data/init-a/vol-12
+        - name: vol-13
+          mountPath: /data/init-a/vol-13
+        - name: vol-14
+          mountPath: /data/init-a/vol-14
+        - name: vol-15
+          mountPath: /data/init-a/vol-15
+        - name: vol-16
+          mountPath: /data/init-a/vol-16
+        - name: vol-17
+          mountPath: /data/init-a/vol-17
+        - name: vol-18
+          mountPath: /data/init-a/vol-18
+        - name: vol-19
+          mountPath: /data/init-a/vol-19
+    - name: init-b
+      image: europe-docker.pkg.dev/kyma-project/prod/external/library/golang:1.26.2-alpine3.23
+      imagePullPolicy: IfNotPresent
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+      env:
+        - name: INIT_PHASE
+          value: "b"
+        - name: INIT_B_ENV_1
+          value: "value-INIT_B-1"
+        - name: INIT_B_ENV_2
+          value: "value-INIT_B-2"
+        - name: INIT_B_ENV_3
+          value: "value-INIT_B-3"
+        - name: INIT_B_ENV_4
+          value: "value-INIT_B-4"
+        - name: INIT_B_ENV_5
+          value: "value-INIT_B-5"
+        - name: INIT_B_ENV_6
+          value: "value-INIT_B-6"
+        - name: INIT_B_ENV_7
+          value: "value-INIT_B-7"
+        - name: INIT_B_ENV_8
+          value: "value-INIT_B-8"
+        - name: INIT_B_ENV_9
+          value: "value-INIT_B-9"
+        - name: INIT_B_ENV_10
+          value: "value-INIT_B-10"
+        - name: INIT_B_ENV_11
+          value: "value-INIT_B-11"
+        - name: INIT_B_ENV_12
+          value: "value-INIT_B-12"
+        - name: INIT_B_ENV_13
+          value: "value-INIT_B-13"
+        - name: INIT_B_ENV_14
+          value: "value-INIT_B-14"
+        - name: INIT_B_ENV_15
+          value: "value-INIT_B-15"
+        - name: INIT_B_ENV_16
+          value: "value-INIT_B-16"
+        - name: INIT_B_ENV_17
+          value: "value-INIT_B-17"
+        - name: INIT_B_ENV_18
+          value: "value-INIT_B-18"
+        - name: INIT_B_ENV_19
+          value: "value-INIT_B-19"
+        - name: INIT_B_ENV_20
+          value: "value-INIT_B-20"
+        - name: INIT_B_ENV_21
+          value: "value-INIT_B-21"
+        - name: INIT_B_ENV_22
+          value: "value-INIT_B-22"
+        - name: INIT_B_ENV_23
+          value: "value-INIT_B-23"
+        - name: INIT_B_ENV_24
+          value: "value-INIT_B-24"
+        - name: INIT_B_ENV_25
+          value: "value-INIT_B-25"
+        - name: INIT_B_ENV_26
+          value: "value-INIT_B-26"
+        - name: INIT_B_ENV_27
+          value: "value-INIT_B-27"
+        - name: INIT_B_ENV_28
+          value: "value-INIT_B-28"
+        - name: INIT_B_ENV_29
+          value: "value-INIT_B-29"
+        - name: INIT_B_ENV_30
+          value: "value-INIT_B-30"
+        - name: INIT_B_ENV_31
+          value: "value-INIT_B-31"
+        - name: INIT_B_ENV_32
+          value: "value-INIT_B-32"
+        - name: INIT_B_ENV_33
+          value: "value-INIT_B-33"
+        - name: INIT_B_ENV_34
+          value: "value-INIT_B-34"
+        - name: INIT_B_ENV_35
+          value: "value-INIT_B-35"
+        - name: INIT_B_ENV_36
+          value: "value-INIT_B-36"
+        - name: INIT_B_ENV_37
+          value: "value-INIT_B-37"
+        - name: INIT_B_ENV_38
+          value: "value-INIT_B-38"
+        - name: INIT_B_ENV_39
+          value: "value-INIT_B-39"
+        - name: INIT_B_ENV_40
+          value: "value-INIT_B-40"
+        - name: INIT_B_ENV_41
+          value: "value-INIT_B-41"
+        - name: INIT_B_ENV_42
+          value: "value-INIT_B-42"
+        - name: INIT_B_ENV_43
+          value: "value-INIT_B-43"
+        - name: INIT_B_ENV_44
+          value: "value-INIT_B-44"
+        - name: INIT_B_ENV_45
+          value: "value-INIT_B-45"
+        - name: INIT_B_ENV_46
+          value: "value-INIT_B-46"
+        - name: INIT_B_ENV_47
+          value: "value-INIT_B-47"
+        - name: INIT_B_ENV_48
+          value: "value-INIT_B-48"
+        - name: INIT_B_ENV_49
+          value: "value-INIT_B-49"
+        - name: INIT_B_ENV_50
+          value: "value-INIT_B-50"
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        - name: vol-0
+          mountPath: /data/init-b/vol-0
+        - name: vol-1
+          mountPath: /data/init-b/vol-1
+        - name: vol-2
+          mountPath: /data/init-b/vol-2
+        - name: vol-3
+          mountPath: /data/init-b/vol-3
+        - name: vol-4
+          mountPath: /data/init-b/vol-4
+        - name: vol-5
+          mountPath: /data/init-b/vol-5
+        - name: vol-6
+          mountPath: /data/init-b/vol-6
+        - name: vol-7
+          mountPath: /data/init-b/vol-7
+        - name: vol-8
+          mountPath: /data/init-b/vol-8
+        - name: vol-9
+          mountPath: /data/init-b/vol-9
+        - name: vol-10
+          mountPath: /data/init-b/vol-10
+        - name: vol-11
+          mountPath: /data/init-b/vol-11
+        - name: vol-12
+          mountPath: /data/init-b/vol-12
+        - name: vol-13
+          mountPath: /data/init-b/vol-13
+        - name: vol-14
+          mountPath: /data/init-b/vol-14
+        - name: vol-15
+          mountPath: /data/init-b/vol-15
+        - name: vol-16
+          mountPath: /data/init-b/vol-16
+        - name: vol-17
+          mountPath: /data/init-b/vol-17
+        - name: vol-18
+          mountPath: /data/init-b/vol-18
+        - name: vol-19
+          mountPath: /data/init-b/vol-19
+  containers:
+    - name: app
+      image: europe-docker.pkg.dev/kyma-project/prod/external/library/golang:1.26.2-alpine3.23
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        - name: port-1
+          containerPort: 9101
+          protocol: TCP
+        - name: port-2
+          containerPort: 9102
+          protocol: TCP
+        - name: port-3
+          containerPort: 9103
+          protocol: TCP
+        - name: port-4
+          containerPort: 9104
+          protocol: TCP
+        - name: port-5
+          containerPort: 9105
+          protocol: TCP
+        - name: port-6
+          containerPort: 9106
+          protocol: TCP
+        - name: port-7
+          containerPort: 9107
+          protocol: TCP
+        - name: port-8
+          containerPort: 9108
+          protocol: TCP
+        - name: port-9
+          containerPort: 9109
+          protocol: TCP
+        - name: port-10
+          containerPort: 9110
+          protocol: TCP
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 500m
+          memory: 256Mi
+      env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: APP_ENV
+          value: "load-test"
+        - name: APP_ENV_1
+          value: "value-APP-1"
+        - name: APP_ENV_2
+          value: "value-APP-2"
+        - name: APP_ENV_3
+          value: "value-APP-3"
+        - name: APP_ENV_4
+          value: "value-APP-4"
+        - name: APP_ENV_5
+          value: "value-APP-5"
+        - name: APP_ENV_6
+          value: "value-APP-6"
+        - name: APP_ENV_7
+          value: "value-APP-7"
+        - name: APP_ENV_8
+          value: "value-APP-8"
+        - name: APP_ENV_9
+          value: "value-APP-9"
+        - name: APP_ENV_10
+          value: "value-APP-10"
+        - name: APP_ENV_11
+          value: "value-APP-11"
+        - name: APP_ENV_12
+          value: "value-APP-12"
+        - name: APP_ENV_13
+          value: "value-APP-13"
+        - name: APP_ENV_14
+          value: "value-APP-14"
+        - name: APP_ENV_15
+          value: "value-APP-15"
+        - name: APP_ENV_16
+          value: "value-APP-16"
+        - name: APP_ENV_17
+          value: "value-APP-17"
+        - name: APP_ENV_18
+          value: "value-APP-18"
+        - name: APP_ENV_19
+          value: "value-APP-19"
+        - name: APP_ENV_20
+          value: "value-APP-20"
+        - name: APP_ENV_21
+          value: "value-APP-21"
+        - name: APP_ENV_22
+          value: "value-APP-22"
+        - name: APP_ENV_23
+          value: "value-APP-23"
+        - name: APP_ENV_24
+          value: "value-APP-24"
+        - name: APP_ENV_25
+          value: "value-APP-25"
+        - name: APP_ENV_26
+          value: "value-APP-26"
+        - name: APP_ENV_27
+          value: "value-APP-27"
+        - name: APP_ENV_28
+          value: "value-APP-28"
+        - name: APP_ENV_29
+          value: "value-APP-29"
+        - name: APP_ENV_30
+          value: "value-APP-30"
+        - name: APP_ENV_31
+          value: "value-APP-31"
+        - name: APP_ENV_32
+          value: "value-APP-32"
+        - name: APP_ENV_33
+          value: "value-APP-33"
+        - name: APP_ENV_34
+          value: "value-APP-34"
+        - name: APP_ENV_35
+          value: "value-APP-35"
+        - name: APP_ENV_36
+          value: "value-APP-36"
+        - name: APP_ENV_37
+          value: "value-APP-37"
+        - name: APP_ENV_38
+          value: "value-APP-38"
+        - name: APP_ENV_39
+          value: "value-APP-39"
+        - name: APP_ENV_40
+          value: "value-APP-40"
+        - name: APP_ENV_41
+          value: "value-APP-41"
+        - name: APP_ENV_42
+          value: "value-APP-42"
+        - name: APP_ENV_43
+          value: "value-APP-43"
+        - name: APP_ENV_44
+          value: "value-APP-44"
+        - name: APP_ENV_45
+          value: "value-APP-45"
+        - name: APP_ENV_46
+          value: "value-APP-46"
+        - name: APP_ENV_47
+          value: "value-APP-47"
+        - name: APP_ENV_48
+          value: "value-APP-48"
+        - name: APP_ENV_49
+          value: "value-APP-49"
+        - name: APP_ENV_50
+          value: "value-APP-50"
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: 8080
+        initialDelaySeconds: 5
+        periodSeconds: 10
+      livenessProbe:
+        httpGet:
+          path: /livez
+          port: 8080
+        initialDelaySeconds: 10
+        periodSeconds: 20
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        - name: vol-0
+          mountPath: /data/app/vol-0
+        - name: vol-1
+          mountPath: /data/app/vol-1
+        - name: vol-2
+          mountPath: /data/app/vol-2
+        - name: vol-3
+          mountPath: /data/app/vol-3
+        - name: vol-4
+          mountPath: /data/app/vol-4
+        - name: vol-5
+          mountPath: /data/app/vol-5
+        - name: vol-6
+          mountPath: /data/app/vol-6
+        - name: vol-7
+          mountPath: /data/app/vol-7
+        - name: vol-8
+          mountPath: /data/app/vol-8
+        - name: vol-9
+          mountPath: /data/app/vol-9
+        - name: vol-10
+          mountPath: /data/app/vol-10
+        - name: vol-11
+          mountPath: /data/app/vol-11
+        - name: vol-12
+          mountPath: /data/app/vol-12
+        - name: vol-13
+          mountPath: /data/app/vol-13
+        - name: vol-14
+          mountPath: /data/app/vol-14
+        - name: vol-15
+          mountPath: /data/app/vol-15
+        - name: vol-16
+          mountPath: /data/app/vol-16
+        - name: vol-17
+          mountPath: /data/app/vol-17
+        - name: vol-18
+          mountPath: /data/app/vol-18
+        - name: vol-19
+          mountPath: /data/app/vol-19
+    - name: sidecar-a
+      image: europe-docker.pkg.dev/kyma-project/prod/external/library/golang:1.26.2-alpine3.23
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: sc-a-port-1
+          containerPort: 9797
+          protocol: TCP
+        - name: sc-a-port-2
+          containerPort: 9798
+          protocol: TCP
+        - name: sc-a-port-3
+          containerPort: 9799
+          protocol: TCP
+        - name: sc-a-port-4
+          containerPort: 9800
+          protocol: TCP
+        - name: sc-a-port-5
+          containerPort: 9801
+          protocol: TCP
+        - name: sc-a-port-6
+          containerPort: 9802
+          protocol: TCP
+        - name: sc-a-port-7
+          containerPort: 9803
+          protocol: TCP
+        - name: sc-a-port-8
+          containerPort: 9804
+          protocol: TCP
+        - name: sc-a-port-9
+          containerPort: 9805
+          protocol: TCP
+        - name: sc-a-port-10
+          containerPort: 9806
+          protocol: TCP
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+      env:
+        - name: SIDECAR_NAME
+          value: "sidecar-a"
+        - name: SC_A_ENV_1
+          value: "value-SC_A-1"
+        - name: SC_A_ENV_2
+          value: "value-SC_A-2"
+        - name: SC_A_ENV_3
+          value: "value-SC_A-3"
+        - name: SC_A_ENV_4
+          value: "value-SC_A-4"
+        - name: SC_A_ENV_5
+          value: "value-SC_A-5"
+        - name: SC_A_ENV_6
+          value: "value-SC_A-6"
+        - name: SC_A_ENV_7
+          value: "value-SC_A-7"
+        - name: SC_A_ENV_8
+          value: "value-SC_A-8"
+        - name: SC_A_ENV_9
+          value: "value-SC_A-9"
+        - name: SC_A_ENV_10
+          value: "value-SC_A-10"
+        - name: SC_A_ENV_11
+          value: "value-SC_A-11"
+        - name: SC_A_ENV_12
+          value: "value-SC_A-12"
+        - name: SC_A_ENV_13
+          value: "value-SC_A-13"
+        - name: SC_A_ENV_14
+          value: "value-SC_A-14"
+        - name: SC_A_ENV_15
+          value: "value-SC_A-15"
+        - name: SC_A_ENV_16
+          value: "value-SC_A-16"
+        - name: SC_A_ENV_17
+          value: "value-SC_A-17"
+        - name: SC_A_ENV_18
+          value: "value-SC_A-18"
+        - name: SC_A_ENV_19
+          value: "value-SC_A-19"
+        - name: SC_A_ENV_20
+          value: "value-SC_A-20"
+        - name: SC_A_ENV_21
+          value: "value-SC_A-21"
+        - name: SC_A_ENV_22
+          value: "value-SC_A-22"
+        - name: SC_A_ENV_23
+          value: "value-SC_A-23"
+        - name: SC_A_ENV_24
+          value: "value-SC_A-24"
+        - name: SC_A_ENV_25
+          value: "value-SC_A-25"
+        - name: SC_A_ENV_26
+          value: "value-SC_A-26"
+        - name: SC_A_ENV_27
+          value: "value-SC_A-27"
+        - name: SC_A_ENV_28
+          value: "value-SC_A-28"
+        - name: SC_A_ENV_29
+          value: "value-SC_A-29"
+        - name: SC_A_ENV_30
+          value: "value-SC_A-30"
+        - name: SC_A_ENV_31
+          value: "value-SC_A-31"
+        - name: SC_A_ENV_32
+          value: "value-SC_A-32"
+        - name: SC_A_ENV_33
+          value: "value-SC_A-33"
+        - name: SC_A_ENV_34
+          value: "value-SC_A-34"
+        - name: SC_A_ENV_35
+          value: "value-SC_A-35"
+        - name: SC_A_ENV_36
+          value: "value-SC_A-36"
+        - name: SC_A_ENV_37
+          value: "value-SC_A-37"
+        - name: SC_A_ENV_38
+          value: "value-SC_A-38"
+        - name: SC_A_ENV_39
+          value: "value-SC_A-39"
+        - name: SC_A_ENV_40
+          value: "value-SC_A-40"
+        - name: SC_A_ENV_41
+          value: "value-SC_A-41"
+        - name: SC_A_ENV_42
+          value: "value-SC_A-42"
+        - name: SC_A_ENV_43
+          value: "value-SC_A-43"
+        - name: SC_A_ENV_44
+          value: "value-SC_A-44"
+        - name: SC_A_ENV_45
+          value: "value-SC_A-45"
+        - name: SC_A_ENV_46
+          value: "value-SC_A-46"
+        - name: SC_A_ENV_47
+          value: "value-SC_A-47"
+        - name: SC_A_ENV_48
+          value: "value-SC_A-48"
+        - name: SC_A_ENV_49
+          value: "value-SC_A-49"
+        - name: SC_A_ENV_50
+          value: "value-SC_A-50"
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        - name: vol-0
+          mountPath: /data/sidecar-a/vol-0
+        - name: vol-1
+          mountPath: /data/sidecar-a/vol-1
+        - name: vol-2
+          mountPath: /data/sidecar-a/vol-2
+        - name: vol-3
+          mountPath: /data/sidecar-a/vol-3
+        - name: vol-4
+          mountPath: /data/sidecar-a/vol-4
+        - name: vol-5
+          mountPath: /data/sidecar-a/vol-5
+        - name: vol-6
+          mountPath: /data/sidecar-a/vol-6
+        - name: vol-7
+          mountPath: /data/sidecar-a/vol-7
+        - name: vol-8
+          mountPath: /data/sidecar-a/vol-8
+        - name: vol-9
+          mountPath: /data/sidecar-a/vol-9
+        - name: vol-10
+          mountPath: /data/sidecar-a/vol-10
+        - name: vol-11
+          mountPath: /data/sidecar-a/vol-11
+        - name: vol-12
+          mountPath: /data/sidecar-a/vol-12
+        - name: vol-13
+          mountPath: /data/sidecar-a/vol-13
+        - name: vol-14
+          mountPath: /data/sidecar-a/vol-14
+        - name: vol-15
+          mountPath: /data/sidecar-a/vol-15
+        - name: vol-16
+          mountPath: /data/sidecar-a/vol-16
+        - name: vol-17
+          mountPath: /data/sidecar-a/vol-17
+        - name: vol-18
+          mountPath: /data/sidecar-a/vol-18
+        - name: vol-19
+          mountPath: /data/sidecar-a/vol-19
+    - name: sidecar-b
+      image: europe-docker.pkg.dev/kyma-project/prod/external/library/golang:1.26.2-alpine3.23
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: sc-b-port-1
+          containerPort: 9897
+          protocol: TCP
+        - name: sc-b-port-2
+          containerPort: 9898
+          protocol: TCP
+        - name: sc-b-port-3
+          containerPort: 9899
+          protocol: TCP
+        - name: sc-b-port-4
+          containerPort: 9900
+          protocol: TCP
+        - name: sc-b-port-5
+          containerPort: 9901
+          protocol: TCP
+        - name: sc-b-port-6
+          containerPort: 9902
+          protocol: TCP
+        - name: sc-b-port-7
+          containerPort: 9903
+          protocol: TCP
+        - name: sc-b-port-8
+          containerPort: 9904
+          protocol: TCP
+        - name: sc-b-port-9
+          containerPort: 9905
+          protocol: TCP
+        - name: sc-b-port-10
+          containerPort: 9906
+          protocol: TCP
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+      env:
+        - name: SIDECAR_NAME
+          value: "sidecar-b"
+        - name: SC_B_ENV_1
+          value: "value-SC_B-1"
+        - name: SC_B_ENV_2
+          value: "value-SC_B-2"
+        - name: SC_B_ENV_3
+          value: "value-SC_B-3"
+        - name: SC_B_ENV_4
+          value: "value-SC_B-4"
+        - name: SC_B_ENV_5
+          value: "value-SC_B-5"
+        - name: SC_B_ENV_6
+          value: "value-SC_B-6"
+        - name: SC_B_ENV_7
+          value: "value-SC_B-7"
+        - name: SC_B_ENV_8
+          value: "value-SC_B-8"
+        - name: SC_B_ENV_9
+          value: "value-SC_B-9"
+        - name: SC_B_ENV_10
+          value: "value-SC_B-10"
+        - name: SC_B_ENV_11
+          value: "value-SC_B-11"
+        - name: SC_B_ENV_12
+          value: "value-SC_B-12"
+        - name: SC_B_ENV_13
+          value: "value-SC_B-13"
+        - name: SC_B_ENV_14
+          value: "value-SC_B-14"
+        - name: SC_B_ENV_15
+          value: "value-SC_B-15"
+        - name: SC_B_ENV_16
+          value: "value-SC_B-16"
+        - name: SC_B_ENV_17
+          value: "value-SC_B-17"
+        - name: SC_B_ENV_18
+          value: "value-SC_B-18"
+        - name: SC_B_ENV_19
+          value: "value-SC_B-19"
+        - name: SC_B_ENV_20
+          value: "value-SC_B-20"
+        - name: SC_B_ENV_21
+          value: "value-SC_B-21"
+        - name: SC_B_ENV_22
+          value: "value-SC_B-22"
+        - name: SC_B_ENV_23
+          value: "value-SC_B-23"
+        - name: SC_B_ENV_24
+          value: "value-SC_B-24"
+        - name: SC_B_ENV_25
+          value: "value-SC_B-25"
+        - name: SC_B_ENV_26
+          value: "value-SC_B-26"
+        - name: SC_B_ENV_27
+          value: "value-SC_B-27"
+        - name: SC_B_ENV_28
+          value: "value-SC_B-28"
+        - name: SC_B_ENV_29
+          value: "value-SC_B-29"
+        - name: SC_B_ENV_30
+          value: "value-SC_B-30"
+        - name: SC_B_ENV_31
+          value: "value-SC_B-31"
+        - name: SC_B_ENV_32
+          value: "value-SC_B-32"
+        - name: SC_B_ENV_33
+          value: "value-SC_B-33"
+        - name: SC_B_ENV_34
+          value: "value-SC_B-34"
+        - name: SC_B_ENV_35
+          value: "value-SC_B-35"
+        - name: SC_B_ENV_36
+          value: "value-SC_B-36"
+        - name: SC_B_ENV_37
+          value: "value-SC_B-37"
+        - name: SC_B_ENV_38
+          value: "value-SC_B-38"
+        - name: SC_B_ENV_39
+          value: "value-SC_B-39"
+        - name: SC_B_ENV_40
+          value: "value-SC_B-40"
+        - name: SC_B_ENV_41
+          value: "value-SC_B-41"
+        - name: SC_B_ENV_42
+          value: "value-SC_B-42"
+        - name: SC_B_ENV_43
+          value: "value-SC_B-43"
+        - name: SC_B_ENV_44
+          value: "value-SC_B-44"
+        - name: SC_B_ENV_45
+          value: "value-SC_B-45"
+        - name: SC_B_ENV_46
+          value: "value-SC_B-46"
+        - name: SC_B_ENV_47
+          value: "value-SC_B-47"
+        - name: SC_B_ENV_48
+          value: "value-SC_B-48"
+        - name: SC_B_ENV_49
+          value: "value-SC_B-49"
+        - name: SC_B_ENV_50
+          value: "value-SC_B-50"
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        - name: vol-0
+          mountPath: /data/sidecar-b/vol-0
+        - name: vol-1
+          mountPath: /data/sidecar-b/vol-1
+        - name: vol-2
+          mountPath: /data/sidecar-b/vol-2
+        - name: vol-3
+          mountPath: /data/sidecar-b/vol-3
+        - name: vol-4
+          mountPath: /data/sidecar-b/vol-4
+        - name: vol-5
+          mountPath: /data/sidecar-b/vol-5
+        - name: vol-6
+          mountPath: /data/sidecar-b/vol-6
+        - name: vol-7
+          mountPath: /data/sidecar-b/vol-7
+        - name: vol-8
+          mountPath: /data/sidecar-b/vol-8
+        - name: vol-9
+          mountPath: /data/sidecar-b/vol-9
+        - name: vol-10
+          mountPath: /data/sidecar-b/vol-10
+        - name: vol-11
+          mountPath: /data/sidecar-b/vol-11
+        - name: vol-12
+          mountPath: /data/sidecar-b/vol-12
+        - name: vol-13
+          mountPath: /data/sidecar-b/vol-13
+        - name: vol-14
+          mountPath: /data/sidecar-b/vol-14
+        - name: vol-15
+          mountPath: /data/sidecar-b/vol-15
+        - name: vol-16
+          mountPath: /data/sidecar-b/vol-16
+        - name: vol-17
+          mountPath: /data/sidecar-b/vol-17
+        - name: vol-18
+          mountPath: /data/sidecar-b/vol-18
+        - name: vol-19
+          mountPath: /data/sidecar-b/vol-19
+    - name: sidecar-c
+      image: europe-docker.pkg.dev/kyma-project/prod/external/library/golang:1.26.2-alpine3.23
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: sc-c-port-1
+          containerPort: 9997
+          protocol: TCP
+        - name: sc-c-port-2
+          containerPort: 9998
+          protocol: TCP
+        - name: sc-c-port-3
+          containerPort: 9999
+          protocol: TCP
+        - name: sc-c-port-4
+          containerPort: 10000
+          protocol: TCP
+        - name: sc-c-port-5
+          containerPort: 10001
+          protocol: TCP
+        - name: sc-c-port-6
+          containerPort: 10002
+          protocol: TCP
+        - name: sc-c-port-7
+          containerPort: 10003
+          protocol: TCP
+        - name: sc-c-port-8
+          containerPort: 10004
+          protocol: TCP
+        - name: sc-c-port-9
+          containerPort: 10005
+          protocol: TCP
+        - name: sc-c-port-10
+          containerPort: 10006
+          protocol: TCP
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+      env:
+        - name: SIDECAR_NAME
+          value: "sidecar-c"
+        - name: SC_C_ENV_1
+          value: "value-SC_C-1"
+        - name: SC_C_ENV_2
+          value: "value-SC_C-2"
+        - name: SC_C_ENV_3
+          value: "value-SC_C-3"
+        - name: SC_C_ENV_4
+          value: "value-SC_C-4"
+        - name: SC_C_ENV_5
+          value: "value-SC_C-5"
+        - name: SC_C_ENV_6
+          value: "value-SC_C-6"
+        - name: SC_C_ENV_7
+          value: "value-SC_C-7"
+        - name: SC_C_ENV_8
+          value: "value-SC_C-8"
+        - name: SC_C_ENV_9
+          value: "value-SC_C-9"
+        - name: SC_C_ENV_10
+          value: "value-SC_C-10"
+        - name: SC_C_ENV_11
+          value: "value-SC_C-11"
+        - name: SC_C_ENV_12
+          value: "value-SC_C-12"
+        - name: SC_C_ENV_13
+          value: "value-SC_C-13"
+        - name: SC_C_ENV_14
+          value: "value-SC_C-14"
+        - name: SC_C_ENV_15
+          value: "value-SC_C-15"
+        - name: SC_C_ENV_16
+          value: "value-SC_C-16"
+        - name: SC_C_ENV_17
+          value: "value-SC_C-17"
+        - name: SC_C_ENV_18
+          value: "value-SC_C-18"
+        - name: SC_C_ENV_19
+          value: "value-SC_C-19"
+        - name: SC_C_ENV_20
+          value: "value-SC_C-20"
+        - name: SC_C_ENV_21
+          value: "value-SC_C-21"
+        - name: SC_C_ENV_22
+          value: "value-SC_C-22"
+        - name: SC_C_ENV_23
+          value: "value-SC_C-23"
+        - name: SC_C_ENV_24
+          value: "value-SC_C-24"
+        - name: SC_C_ENV_25
+          value: "value-SC_C-25"
+        - name: SC_C_ENV_26
+          value: "value-SC_C-26"
+        - name: SC_C_ENV_27
+          value: "value-SC_C-27"
+        - name: SC_C_ENV_28
+          value: "value-SC_C-28"
+        - name: SC_C_ENV_29
+          value: "value-SC_C-29"
+        - name: SC_C_ENV_30
+          value: "value-SC_C-30"
+        - name: SC_C_ENV_31
+          value: "value-SC_C-31"
+        - name: SC_C_ENV_32
+          value: "value-SC_C-32"
+        - name: SC_C_ENV_33
+          value: "value-SC_C-33"
+        - name: SC_C_ENV_34
+          value: "value-SC_C-34"
+        - name: SC_C_ENV_35
+          value: "value-SC_C-35"
+        - name: SC_C_ENV_36
+          value: "value-SC_C-36"
+        - name: SC_C_ENV_37
+          value: "value-SC_C-37"
+        - name: SC_C_ENV_38
+          value: "value-SC_C-38"
+        - name: SC_C_ENV_39
+          value: "value-SC_C-39"
+        - name: SC_C_ENV_40
+          value: "value-SC_C-40"
+        - name: SC_C_ENV_41
+          value: "value-SC_C-41"
+        - name: SC_C_ENV_42
+          value: "value-SC_C-42"
+        - name: SC_C_ENV_43
+          value: "value-SC_C-43"
+        - name: SC_C_ENV_44
+          value: "value-SC_C-44"
+        - name: SC_C_ENV_45
+          value: "value-SC_C-45"
+        - name: SC_C_ENV_46
+          value: "value-SC_C-46"
+        - name: SC_C_ENV_47
+          value: "value-SC_C-47"
+        - name: SC_C_ENV_48
+          value: "value-SC_C-48"
+        - name: SC_C_ENV_49
+          value: "value-SC_C-49"
+        - name: SC_C_ENV_50
+          value: "value-SC_C-50"
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        - name: vol-0
+          mountPath: /data/sidecar-c/vol-0
+        - name: vol-1
+          mountPath: /data/sidecar-c/vol-1
+        - name: vol-2
+          mountPath: /data/sidecar-c/vol-2
+        - name: vol-3
+          mountPath: /data/sidecar-c/vol-3
+        - name: vol-4
+          mountPath: /data/sidecar-c/vol-4
+        - name: vol-5
+          mountPath: /data/sidecar-c/vol-5
+        - name: vol-6
+          mountPath: /data/sidecar-c/vol-6
+        - name: vol-7
+          mountPath: /data/sidecar-c/vol-7
+        - name: vol-8
+          mountPath: /data/sidecar-c/vol-8
+        - name: vol-9
+          mountPath: /data/sidecar-c/vol-9
+        - name: vol-10
+          mountPath: /data/sidecar-c/vol-10
+        - name: vol-11
+          mountPath: /data/sidecar-c/vol-11
+        - name: vol-12
+          mountPath: /data/sidecar-c/vol-12
+        - name: vol-13
+          mountPath: /data/sidecar-c/vol-13
+        - name: vol-14
+          mountPath: /data/sidecar-c/vol-14
+        - name: vol-15
+          mountPath: /data/sidecar-c/vol-15
+        - name: vol-16
+          mountPath: /data/sidecar-c/vol-16
+        - name: vol-17
+          mountPath: /data/sidecar-c/vol-17
+        - name: vol-18
+          mountPath: /data/sidecar-c/vol-18
+        - name: vol-19
+          mountPath: /data/sidecar-c/vol-19
+    - name: sidecar-d
+      image: europe-docker.pkg.dev/kyma-project/prod/external/library/golang:1.26.2-alpine3.23
+      imagePullPolicy: IfNotPresent
+      ports:
+        - name: sc-d-port-1
+          containerPort: 10097
+          protocol: TCP
+        - name: sc-d-port-2
+          containerPort: 10098
+          protocol: TCP
+        - name: sc-d-port-3
+          containerPort: 10099
+          protocol: TCP
+        - name: sc-d-port-4
+          containerPort: 10100
+          protocol: TCP
+        - name: sc-d-port-5
+          containerPort: 10101
+          protocol: TCP
+        - name: sc-d-port-6
+          containerPort: 10102
+          protocol: TCP
+        - name: sc-d-port-7
+          containerPort: 10103
+          protocol: TCP
+        - name: sc-d-port-8
+          containerPort: 10104
+          protocol: TCP
+        - name: sc-d-port-9
+          containerPort: 10105
+          protocol: TCP
+        - name: sc-d-port-10
+          containerPort: 10106
+          protocol: TCP
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+      env:
+        - name: SIDECAR_NAME
+          value: "sidecar-d"
+        - name: SC_D_ENV_1
+          value: "value-SC_D-1"
+        - name: SC_D_ENV_2
+          value: "value-SC_D-2"
+        - name: SC_D_ENV_3
+          value: "value-SC_D-3"
+        - name: SC_D_ENV_4
+          value: "value-SC_D-4"
+        - name: SC_D_ENV_5
+          value: "value-SC_D-5"
+        - name: SC_D_ENV_6
+          value: "value-SC_D-6"
+        - name: SC_D_ENV_7
+          value: "value-SC_D-7"
+        - name: SC_D_ENV_8
+          value: "value-SC_D-8"
+        - name: SC_D_ENV_9
+          value: "value-SC_D-9"
+        - name: SC_D_ENV_10
+          value: "value-SC_D-10"
+        - name: SC_D_ENV_11
+          value: "value-SC_D-11"
+        - name: SC_D_ENV_12
+          value: "value-SC_D-12"
+        - name: SC_D_ENV_13
+          value: "value-SC_D-13"
+        - name: SC_D_ENV_14
+          value: "value-SC_D-14"
+        - name: SC_D_ENV_15
+          value: "value-SC_D-15"
+        - name: SC_D_ENV_16
+          value: "value-SC_D-16"
+        - name: SC_D_ENV_17
+          value: "value-SC_D-17"
+        - name: SC_D_ENV_18
+          value: "value-SC_D-18"
+        - name: SC_D_ENV_19
+          value: "value-SC_D-19"
+        - name: SC_D_ENV_20
+          value: "value-SC_D-20"
+        - name: SC_D_ENV_21
+          value: "value-SC_D-21"
+        - name: SC_D_ENV_22
+          value: "value-SC_D-22"
+        - name: SC_D_ENV_23
+          value: "value-SC_D-23"
+        - name: SC_D_ENV_24
+          value: "value-SC_D-24"
+        - name: SC_D_ENV_25
+          value: "value-SC_D-25"
+        - name: SC_D_ENV_26
+          value: "value-SC_D-26"
+        - name: SC_D_ENV_27
+          value: "value-SC_D-27"
+        - name: SC_D_ENV_28
+          value: "value-SC_D-28"
+        - name: SC_D_ENV_29
+          value: "value-SC_D-29"
+        - name: SC_D_ENV_30
+          value: "value-SC_D-30"
+        - name: SC_D_ENV_31
+          value: "value-SC_D-31"
+        - name: SC_D_ENV_32
+          value: "value-SC_D-32"
+        - name: SC_D_ENV_33
+          value: "value-SC_D-33"
+        - name: SC_D_ENV_34
+          value: "value-SC_D-34"
+        - name: SC_D_ENV_35
+          value: "value-SC_D-35"
+        - name: SC_D_ENV_36
+          value: "value-SC_D-36"
+        - name: SC_D_ENV_37
+          value: "value-SC_D-37"
+        - name: SC_D_ENV_38
+          value: "value-SC_D-38"
+        - name: SC_D_ENV_39
+          value: "value-SC_D-39"
+        - name: SC_D_ENV_40
+          value: "value-SC_D-40"
+        - name: SC_D_ENV_41
+          value: "value-SC_D-41"
+        - name: SC_D_ENV_42
+          value: "value-SC_D-42"
+        - name: SC_D_ENV_43
+          value: "value-SC_D-43"
+        - name: SC_D_ENV_44
+          value: "value-SC_D-44"
+        - name: SC_D_ENV_45
+          value: "value-SC_D-45"
+        - name: SC_D_ENV_46
+          value: "value-SC_D-46"
+        - name: SC_D_ENV_47
+          value: "value-SC_D-47"
+        - name: SC_D_ENV_48
+          value: "value-SC_D-48"
+        - name: SC_D_ENV_49
+          value: "value-SC_D-49"
+        - name: SC_D_ENV_50
+          value: "value-SC_D-50"
+      volumeMounts:
+        - name: config
+          mountPath: /etc/config
+          readOnly: true
+        - name: tmp
+          mountPath: /tmp
+        - name: vol-0
+          mountPath: /data/sidecar-d/vol-0
+        - name: vol-1
+          mountPath: /data/sidecar-d/vol-1
+        - name: vol-2
+          mountPath: /data/sidecar-d/vol-2
+        - name: vol-3
+          mountPath: /data/sidecar-d/vol-3
+        - name: vol-4
+          mountPath: /data/sidecar-d/vol-4
+        - name: vol-5
+          mountPath: /data/sidecar-d/vol-5
+        - name: vol-6
+          mountPath: /data/sidecar-d/vol-6
+        - name: vol-7
+          mountPath: /data/sidecar-d/vol-7
+        - name: vol-8
+          mountPath: /data/sidecar-d/vol-8
+        - name: vol-9
+          mountPath: /data/sidecar-d/vol-9
+        - name: vol-10
+          mountPath: /data/sidecar-d/vol-10
+        - name: vol-11
+          mountPath: /data/sidecar-d/vol-11
+        - name: vol-12
+          mountPath: /data/sidecar-d/vol-12
+        - name: vol-13
+          mountPath: /data/sidecar-d/vol-13
+        - name: vol-14
+          mountPath: /data/sidecar-d/vol-14
+        - name: vol-15
+          mountPath: /data/sidecar-d/vol-15
+        - name: vol-16
+          mountPath: /data/sidecar-d/vol-16
+        - name: vol-17
+          mountPath: /data/sidecar-d/vol-17
+        - name: vol-18
+          mountPath: /data/sidecar-d/vol-18
+        - name: vol-19
+          mountPath: /data/sidecar-d/vol-19
+  volumes:
+    - name: config
+      configMap:
+        name: fake-config
+    - name: tmp
+      emptyDir: {}
+    - name: vol-0
+      emptyDir: {}
+    - name: vol-1
+      emptyDir: {}
+    - name: vol-2
+      emptyDir: {}
+    - name: vol-3
+      emptyDir: {}
+    - name: vol-4
+      emptyDir: {}
+    - name: vol-5
+      emptyDir: {}
+    - name: vol-6
+      emptyDir: {}
+    - name: vol-7
+      emptyDir: {}
+    - name: vol-8
+      emptyDir: {}
+    - name: vol-9
+      emptyDir: {}
+    - name: vol-10
+      emptyDir: {}
+    - name: vol-11
+      emptyDir: {}
+    - name: vol-12
+      emptyDir: {}
+    - name: vol-13
+      emptyDir: {}
+    - name: vol-14
+      emptyDir: {}
+    - name: vol-15
+      emptyDir: {}
+    - name: vol-16
+      emptyDir: {}
+    - name: vol-17
+      emptyDir: {}
+    - name: vol-18
+      emptyDir: {}
+    - name: vol-19
+      emptyDir: {}
