@@ -1,0 +1,17 @@
+FROM registry.ci.openshift.org/ocp/builder:rhel-9-golang-1.26-openshift-5.0 AS builder
+
+ARG BUILD_VERSION=main
+ARG GIT_COMMIT=HEAD
+
+WORKDIR /workspace
+COPY . .
+
+RUN CGO_ENABLED=0 go build -mod=vendor \
+    -ldflags "-X=github.com/kedacore/keda/v2/version.GitCommit=${GIT_COMMIT} -X=github.com/kedacore/keda/v2/version.Version=${BUILD_VERSION}" \
+    -o bin/keda-admission-webhooks cmd/webhooks/main.go
+
+FROM registry.ci.openshift.org/ocp/5.0:base-rhel9
+COPY --from=builder /workspace/bin/keda-admission-webhooks /usr/bin/
+# Symlink for backwards compatibility with CMA operator manifests that reference the upstream path.
+RUN ln -s /usr/bin/keda-admission-webhooks /keda-admission-webhooks
+ENTRYPOINT ["/usr/bin/keda-admission-webhooks", "--zap-log-level=info", "--zap-encoder=console"]
