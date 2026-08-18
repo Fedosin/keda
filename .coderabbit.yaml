@@ -1,0 +1,105 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# Docs: https://docs.coderabbit.ai/getting-started/configure-coderabbit
+
+language: en-US
+early_access: false
+
+reviews:
+  profile: "chill"
+  high_level_summary: false
+  poem: false
+  request_changes_workflow: false
+  collapse_walkthrough: true
+
+  path_filters:
+    - "!vendor/**"
+    - "!**/vendor/**"
+    - "!**/zz_generated*"
+    - "!go.sum"
+    # Upstream-only files not used in our CI
+    - "!.github/**"
+    - "!renovate.json5"
+    - "!trivy.yml"
+    - "!.fossa.yml"
+    - "!.snyk"
+    - "!.whitesource"
+    - "!images/**"
+
+  path_instructions:
+    - path: "controllers/**/*.go"
+      instructions: |
+        Review for idempotent reconciliation, proper error handling and
+        status subresource updates. KEDA controllers manage HPA objects
+        and scaling state — verify that changes handle concurrent scaler
+        execution safely and clean up resources on deletion.
+
+    - path: "apis/**/*.go"
+      instructions: |
+        Review CRD API types for backward compatibility, correct
+        kubebuilder validation markers, proper JSON tags with omitempty
+        on optional fields, and deepcopy compliance. API changes require
+        regenerating CRDs (make manifests) and deepcopy (make generate).
+
+    - path: "pkg/scalers/**/*.go"
+      instructions: |
+        Review scaler implementations for correct Scaler interface
+        compliance (GetMetricsAndActivity, GetMetricSpecForScaling,
+        Close). Verify thread safety — scalers run concurrently and
+        Close() must not race with metric collection. Check for proper
+        error handling and resource cleanup.
+
+    - path: "pkg/scaling/**/*.go"
+      instructions: |
+        This is core scaling logic shared by all three binaries
+        (operator, adapter, webhooks). Changes here have wide blast
+        radius. Review for concurrency safety, correct scaler lifecycle
+        management, and metric caching behavior.
+
+    - path: "tests/**/*.go"
+      instructions: |
+        Review e2e tests for deterministic test names, proper resource
+        cleanup, and realistic timeouts. OpenShift CI runs only a subset
+        of tests (see openshift-e2e.yaml) — verify new tests are
+        included if they should run in CI.
+
+    - path: "config/**/*.yaml"
+      instructions: |
+        CRD and RBAC manifests in config/crd/bases/ and config/rbac/
+        are generated — do not approve hand-edits to these files.
+        For other manifests, check securityContext, resource limits,
+        and RBAC least privilege.
+
+    - path: "**/{Dockerfile,Dockerfile.*,Containerfile{,.*}.rhel"
+      instructions: |
+        Check for multi-stage builds, no secrets or credentials,
+        and minimal image size. Dockerfile.tests is downstream-only
+        (OpenShift CI e2e image). Containerfile{,.*}.rhel are the
+        for the downstream-only product image builds.
+
+    - path: "hack/**"
+      instructions: |
+        These scripts run in CI. Check for correct error handling
+        (set -e), shellcheck compliance, and that the script matches
+        what CI expects. hack/cma-verify-history.sh validates upstream
+        commit prefix conventions.
+
+  tools:
+    gitleaks:
+      enabled: true
+    golangci-lint:
+      enabled: true
+    hadolint:
+      enabled: true
+
+  knowledge_base:
+    code_guidelines:
+      enabled: true
+      filePatterns:
+        - "**/AGENTS.md"
+        - "**/CONTRIBUTING_OPENSHIFT.md"
+    learnings:
+      scope: auto
+    issues:
+      scope: auto
+    pull_requests:
+      scope: auto
