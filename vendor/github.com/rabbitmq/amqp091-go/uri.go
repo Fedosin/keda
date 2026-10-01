@@ -229,20 +229,27 @@ func (uri URI) String() string {
 	}
 
 	if uri.CertFile != "" || uri.KeyFile != "" || uri.CACertFile != "" || uri.ServerName != "" {
-		q := url.Values{}
+		rawQuery := strings.Builder{}
 		if uri.CertFile != "" {
-			q.Set("certfile", uri.CertFile)
+			rawQuery.WriteString("certfile=")
+			rawQuery.WriteString(uri.CertFile)
+			rawQuery.WriteRune('&')
 		}
 		if uri.KeyFile != "" {
-			q.Set("keyfile", uri.KeyFile)
+			rawQuery.WriteString("keyfile=")
+			rawQuery.WriteString(uri.KeyFile)
+			rawQuery.WriteRune('&')
 		}
 		if uri.CACertFile != "" {
-			q.Set("cacertfile", uri.CACertFile)
+			rawQuery.WriteString("cacertfile=")
+			rawQuery.WriteString(uri.CACertFile)
+			rawQuery.WriteRune('&')
 		}
 		if uri.ServerName != "" {
-			q.Set("server_name_indication", uri.ServerName)
+			rawQuery.WriteString("server_name_indication=")
+			rawQuery.WriteString(uri.ServerName)
 		}
-		authority.RawQuery = q.Encode()
+		authority.RawQuery = rawQuery.String()
 	}
 
 	return authority.String()

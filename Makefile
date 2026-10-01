@@ -9,9 +9,9 @@ SUFFIX ?=
 IMAGE_REGISTRY ?= ghcr.io
 IMAGE_REPO     ?= kedacore
 
-IMAGE_CONTROLLER ?= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/keda$(SUFFIX):$(VERSION)
-IMAGE_ADAPTER    ?= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/keda-metrics-apiserver$(SUFFIX):$(VERSION)
-IMAGE_WEBHOOKS   ?= $(IMAGE_REGISTRY)/$(IMAGE_REPO)/keda-admission-webhooks$(SUFFIX):$(VERSION)
+IMAGE_CONTROLLER = $(IMAGE_REGISTRY)/$(IMAGE_REPO)/keda$(SUFFIX):$(VERSION)
+IMAGE_ADAPTER    = $(IMAGE_REGISTRY)/$(IMAGE_REPO)/keda-metrics-apiserver$(SUFFIX):$(VERSION)
+IMAGE_WEBHOOKS   = $(IMAGE_REGISTRY)/$(IMAGE_REPO)/keda-admission-webhooks$(SUFFIX):$(VERSION)
 
 ARCH       ?=amd64
 CGO        ?=0
@@ -129,24 +129,6 @@ e2e-test-clean: get-cluster-context ## Delete all namespaces labeled with type=e
 	# and we get stranded on old versions when we try to upgrade
 	kubectl get crd -o name | grep kafka.strimzi.io | xargs -r kubectl delete --ignore-not-found=true --timeout=60s
 
-# The OpenShift tests are split into 3 targets because when we test the CMA operator,
-# we want to do the setup and cleanup with the operator, but still run the test suite
-# from the test image, so we need that granularity.
-.PHONY: e2e-test-openshift-setup
-e2e-test-openshift-setup: ## Setup the tests for OpenShift
-	@echo "--- Performing Setup ---"
-	cd tests; go test -v -timeout 15m -tags e2e ./utils/setup_test.go
-
-.PHONY: e2e-test-openshift
-e2e-test-openshift: ## Run tests for OpenShift
-	@echo "--- Running OpenShift KEDA Tests ---"
-	E2E_TEST_CONFIG=openshift-e2e.yaml go run -tags e2e ./tests/run-all.go
-
-.PHONY: e2e-test-openshift-clean
-e2e-test-openshift-clean: ## Cleanup the test environment for OpenShift
-	@echo "--- Cleaning Up ---"
-	cd tests; go test -v -timeout 60m -tags e2e ./utils/cleanup_test.go
-
 .PHONY: smoke-test
 smoke-test: ## Run e2e tests against Kubernetes cluster configured in ~/.kube/config.
 	./tests/run-smoke-tests.sh
@@ -175,17 +157,7 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
-tooldeps: ## Update tooldeps
-	hack/tooldeps/update.sh
-
-tooldeps-check: ## Check whether tooldeps are out of date
-	rm -rf hack/tooldeps-check
-	cp -a hack/tooldeps hack/tooldeps-check
-	hack/tooldeps-check/update.sh
-	diff -uNr hack/tooldeps hack/tooldeps-check || { echo "tooldeps are out of date. Run 'make tooldeps' to correct"; rm -rf hack/tooldeps-check; false; }
-	rm -rf hack/tooldeps-check
-	echo "tooldeps are current"
-
+.PHONY: golangci
 golangci: ## Run golangci against code.
 	@HAS_GOLANGCI_VERSION=$$($(GOPATH)/bin/golangci-lint version --short 2>/dev/null || echo ""); \
 	if [ "$$HAS_GOLANGCI_VERSION" != "$(GOLANGCI_VERSION)" ]; then \

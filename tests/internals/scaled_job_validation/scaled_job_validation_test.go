@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	. "github.com/kedacore/keda/v2/tests/helper"
 )
@@ -127,7 +126,7 @@ func testTriggersWithEmptyArray(t *testing.T, data templateData) {
 	t.Log("--- triggers with empty array ---")
 
 	err := KubectlApplyWithErrors(t, data, "emptyTriggersSjTemplate", emptyTriggersSjTemplate)
-	require.Errorf(t, err, "can deploy the scaledJob - %s", err)
+	assert.Errorf(t, err, "can deploy the scaledJob - %s", err)
 	assert.Contains(t, err.Error(), "spec.triggers in body should have at least 1 items")
 }
 

@@ -8,14 +8,13 @@ import (
 	"context"
 	"fmt"
 	"maps"
-	"os"
 	"os/exec"
 	"strings"
 	"testing"
-	"time"
 
 	prommodel "github.com/prometheus/client_model/go"
 	"github.com/prometheus/common/expfmt"
+	"github.com/prometheus/common/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,10 +41,16 @@ var (
 	deploymentName                 = fmt.Sprintf("%s-deployment", testName)
 	monitoredDeploymentName        = fmt.Sprintf("%s-monitored", testName)
 	scaledObjectName               = fmt.Sprintf("%s-so", testName)
+	resourceMetricDeploymentName   = fmt.Sprintf("%s-resource-deployment", testName)
+	resourceMetricScaledObjectName = fmt.Sprintf("%s-resource-so", testName)
+	resourceMetricScalerName       = fmt.Sprintf("%s-resource-cpu-scaler", testName)
+	httpClientScaledObjectName     = fmt.Sprintf("%s-so-http-client", testName)
 	wrongScaledObjectName          = fmt.Sprintf("%s-so-wrong", testName)
 	scaledJobName                  = fmt.Sprintf("%s-sj", testName)
 	wrongScaledJobName             = fmt.Sprintf("%s-sj-wrong", testName)
 	wrongScalerName                = fmt.Sprintf("%s-wrong-scaler", testName)
+	emptyUpstreamScaledObjectName  = fmt.Sprintf("%s-so-empty-upstream", testName)
+	httpClientScalerName           = fmt.Sprintf("%s-http-client-scaler", testName)
 	cronScaledJobName              = fmt.Sprintf("%s-cron-sj", testName)
 	clientName                     = fmt.Sprintf("%s-client", testName)
 	cloudEventSourceName           = fmt.Sprintf("%s-ce", testName)
@@ -60,22 +65,28 @@ var (
 )
 
 type templateData struct {
-	TestName                   string
-	TestNamespace              string
-	DeploymentName             string
-	ScaledObjectName           string
-	ScaledJobName              string
-	WrongScaledObjectName      string
-	WrongScaledJobName         string
-	WrongScalerName            string
-	CronScaledJobName          string
-	MonitoredDeploymentName    string
-	ClientName                 string
-	CloudEventSourceName       string
-	WrongCloudEventSourceName  string
-	CloudEventHTTPReceiverName string
-	CloudEventHTTPServiceName  string
-	CloudEventHTTPServiceURL   string
+	TestName                       string
+	TestNamespace                  string
+	DeploymentName                 string
+	ScaledObjectName               string
+	ResourceMetricDeploymentName   string
+	ResourceMetricScaledObjectName string
+	ResourceMetricScalerName       string
+	HTTPClientScaledObjectName     string
+	ScaledJobName                  string
+	WrongScaledObjectName          string
+	WrongScaledJobName             string
+	WrongScalerName                string
+	EmptyUpstreamScaledObjectName  string
+	HTTPClientScalerName           string
+	CronScaledJobName              string
+	MonitoredDeploymentName        string
+	ClientName                     string
+	CloudEventSourceName           string
+	WrongCloudEventSourceName      string
+	CloudEventHTTPReceiverName     string
+	CloudEventHTTPServiceName      string
+	CloudEventHTTPServiceURL       string
 }
 
 const (
@@ -125,6 +136,34 @@ spec:
           image: ghcr.io/nginx/nginx-unprivileged:1.26
 `
 
+	resourceMetricDeploymentTemplate = `
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.ResourceMetricDeploymentName}}
+  namespace: {{.TestNamespace}}
+  labels:
+    app: {{.ResourceMetricDeploymentName}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{.ResourceMetricDeploymentName}}
+  template:
+    metadata:
+      labels:
+        app: {{.ResourceMetricDeploymentName}}
+    spec:
+      containers:
+        - name: {{.ResourceMetricDeploymentName}}
+          image: ghcr.io/nginx/nginx-unprivileged:1.26
+          resources:
+            requests:
+              cpu: "200m"
+            limits:
+              cpu: "500m"
+`
+
 	scaledObjectTemplate = `
 apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
@@ -144,6 +183,26 @@ spec:
       metadata:
         podSelector: 'app={{.MonitoredDeploymentName}}'
         value: '1'
+`
+
+	resourceMetricScaledObjectTemplate = `
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{.ResourceMetricScaledObjectName}}
+  namespace: {{.TestNamespace}}
+spec:
+  scaleTargetRef:
+    name: {{.ResourceMetricDeploymentName}}
+  pollingInterval: 5
+  minReplicaCount: 1
+  maxReplicaCount: 2
+  triggers:
+    - type: cpu
+      name: {{.ResourceMetricScalerName}}
+      metricType: Utilization
+      metadata:
+        value: "50"
 `
 
 	wrongScaledObjectTemplate = `
@@ -168,6 +227,30 @@ spec:
         metricName: keda_scaler_errors_total
         threshold: '1'
         query: 'keda_scaler_errors_total{namespace="{{.TestNamespace}}",scaledObject="{{.WrongScaledObjectName}}"}'
+`
+
+	httpClientScaledObjectTemplate = `
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{.HTTPClientScaledObjectName}}
+  namespace: {{.TestNamespace}}
+spec:
+  scaleTargetRef:
+    name: {{.DeploymentName}}
+  pollingInterval: 2
+  idleReplicaCount: 0
+  minReplicaCount: 1
+  maxReplicaCount: 2
+  cooldownPeriod: 10
+  triggers:
+    - type: prometheus
+      name: {{.HTTPClientScalerName}}
+      metadata:
+        serverAddress: http://keda-prometheus.keda.svc.cluster.local:8080
+        metricName: keda_scaler_errors_total
+        threshold: '1'
+        query: 'keda_scaler_errors_total{namespace="{{.TestNamespace}}",scaledObject="{{.HTTPClientScaledObjectName}}"}'
 `
 
 	scaledJobTemplate = `
@@ -423,6 +506,89 @@ spec:
           limits:
             cpu: "500m"
 `
+
+	emptyUpstreamPrometheusConfigMapTemplate = `
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-empty-upstream-config
+  namespace: {{.TestNamespace}}
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+`
+
+	emptyUpstreamPrometheusDeploymentTemplate = `
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-empty-upstream
+  namespace: {{.TestNamespace}}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus-empty-upstream
+  template:
+    metadata:
+      labels:
+        app: prometheus-empty-upstream
+    spec:
+      containers:
+        - name: prometheus
+          image: docker.io/prom/prometheus:v2.47.1
+          args:
+            - --config.file=/etc/config/prometheus.yml
+          ports:
+            - containerPort: 9090
+          volumeMounts:
+            - name: config
+              mountPath: /etc/config
+      volumes:
+        - name: config
+          configMap:
+            name: prometheus-empty-upstream-config
+`
+
+	emptyUpstreamPrometheusServiceTemplate = `
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-empty-upstream
+  namespace: {{.TestNamespace}}
+spec:
+  selector:
+    app: prometheus-empty-upstream
+  ports:
+    - port: 9090
+      targetPort: 9090
+`
+
+	emptyUpstreamResponseScaledObjectTemplate = `
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{.EmptyUpstreamScaledObjectName}}
+  namespace: {{.TestNamespace}}
+spec:
+  scaleTargetRef:
+    name: {{.DeploymentName}}
+  pollingInterval: 2
+  idleReplicaCount: 0
+  minReplicaCount: 0
+  maxReplicaCount: 2
+  cooldownPeriod: 10
+  triggers:
+    - type: prometheus
+      name: empty-upstream-trigger
+      metadata:
+        serverAddress: http://prometheus-empty-upstream.{{.TestNamespace}}.svc.cluster.local:9090
+        threshold: '1'
+        query: 'nonexistent_metric_empty_upstream_response'
+        ignoreNullValues: 'false'
+`
 )
 
 func TestPrometheusMetrics(t *testing.T) {
@@ -436,8 +602,8 @@ func TestPrometheusMetrics(t *testing.T) {
 	CreateKubernetesResources(t, kc, testNamespace, data, templates)
 
 	// scaling to max replica count to ensure the counter is registered before we test it
-	assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, deploymentName, testNamespace, 2, 60, 5),
-		"replica count should be 2 after 5 minutes")
+	assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, deploymentName, testNamespace, 2, 60, 2),
+		"replica count should be 2 after 2 minute")
 
 	testScalerMetricValue(t)
 	testScalerMetricLatency(t)
@@ -452,32 +618,42 @@ func TestPrometheusMetrics(t *testing.T) {
 	testScaledObjectPausedMetric(t, data)
 	testCloudEventEmitted(t, data)
 	testCloudEventEmittedError(t, data)
+	testEmptyUpstreamResponse(t, data)
+	testHTTPClientMetrics(t, data)
 	// cleanup
 	DeleteKubernetesResources(t, testNamespace, data, templates)
 }
 
 func getTemplateData() (templateData, []Template) {
 	return templateData{
-			TestName:                   testName,
-			TestNamespace:              testNamespace,
-			DeploymentName:             deploymentName,
-			ScaledObjectName:           scaledObjectName,
-			WrongScaledObjectName:      wrongScaledObjectName,
-			ScaledJobName:              scaledJobName,
-			WrongScaledJobName:         wrongScaledJobName,
-			WrongScalerName:            wrongScalerName,
-			MonitoredDeploymentName:    monitoredDeploymentName,
-			ClientName:                 clientName,
-			CronScaledJobName:          cronScaledJobName,
-			CloudEventSourceName:       cloudEventSourceName,
-			WrongCloudEventSourceName:  wrongCloudEventSourceName,
-			CloudEventHTTPReceiverName: cloudEventHTTPReceiverName,
-			CloudEventHTTPServiceName:  cloudEventHTTPServiceName,
-			CloudEventHTTPServiceURL:   cloudEventHTTPServiceURL,
+			TestName:                       testName,
+			TestNamespace:                  testNamespace,
+			DeploymentName:                 deploymentName,
+			ScaledObjectName:               scaledObjectName,
+			ResourceMetricDeploymentName:   resourceMetricDeploymentName,
+			ResourceMetricScaledObjectName: resourceMetricScaledObjectName,
+			ResourceMetricScalerName:       resourceMetricScalerName,
+			HTTPClientScaledObjectName:     httpClientScaledObjectName,
+			WrongScaledObjectName:          wrongScaledObjectName,
+			ScaledJobName:                  scaledJobName,
+			WrongScaledJobName:             wrongScaledJobName,
+			WrongScalerName:                wrongScalerName,
+			EmptyUpstreamScaledObjectName:  emptyUpstreamScaledObjectName,
+			HTTPClientScalerName:           httpClientScalerName,
+			MonitoredDeploymentName:        monitoredDeploymentName,
+			ClientName:                     clientName,
+			CronScaledJobName:              cronScaledJobName,
+			CloudEventSourceName:           cloudEventSourceName,
+			WrongCloudEventSourceName:      wrongCloudEventSourceName,
+			CloudEventHTTPReceiverName:     cloudEventHTTPReceiverName,
+			CloudEventHTTPServiceName:      cloudEventHTTPServiceName,
+			CloudEventHTTPServiceURL:       cloudEventHTTPServiceURL,
 		}, []Template{
 			{Name: "deploymentTemplate", Config: deploymentTemplate},
 			{Name: "monitoredDeploymentTemplate", Config: monitoredDeploymentTemplate},
 			{Name: "scaledObjectTemplate", Config: scaledObjectTemplate},
+			{Name: "resourceMetricDeploymentTemplate", Config: resourceMetricDeploymentTemplate},
+			{Name: "resourceMetricScaledObjectTemplate", Config: resourceMetricScaledObjectTemplate},
 			{Name: "scaledJobTemplate", Config: scaledJobTemplate},
 			{Name: "clientTemplate", Config: clientTemplate},
 			{Name: "authenticatioNTemplate", Config: authenticationTemplate},
@@ -490,7 +666,7 @@ func fetchAndParsePrometheusMetrics(t *testing.T, cmd string) map[string]*prommo
 	out, _, err := ExecCommandOnSpecificPodWithoutTTY(t, clientName, testNamespace, cmd)
 	assert.NoErrorf(t, err, "cannot execute command - %s", err)
 
-	parser := expfmt.TextParser{}
+	parser := expfmt.NewTextParser(model.UTF8Validation)
 	// Ensure EOL
 	reader := strings.NewReader(strings.ReplaceAll(out, "\r\n", "\n"))
 	families, err := parser.TextToMetricFamilies(reader)
@@ -503,7 +679,7 @@ func fetchAndParsePrometheusMetrics(t *testing.T, cmd string) map[string]*prommo
 // and validates that the MetricFamily it has certain conditions using the provided familyValidator function.
 // Returns the parsed MetricFamily.
 func WaitForPrometheusMetric(t *testing.T, metricToWaitFor string, familyValidator func(family *prommodel.MetricFamily) bool) map[string]*prommodel.MetricFamily {
-	contextWithTimeout, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	contextWithTimeout, cancel := context.WithTimeout(context.Background(), WaitShort)
 	defer cancel()
 	var family map[string]*prommodel.MetricFamily
 	err := KedaEventually(contextWithTimeout, func(ctx context.Context) (bool, error) {
@@ -524,52 +700,6 @@ func WaitForPrometheusMetric(t *testing.T, metricToWaitFor string, familyValidat
 	}
 
 	return family
-}
-
-// waitForCronTriggersToEqual polls keda_trigger_registered_total from the
-// KEDA operator's /metrics endpoint and waits until the cluster-wide cron
-// trigger count equals the expected value. This is necessary because
-// keda_trigger_registered_total has no namespace label — it is a cluster-wide
-// gauge. When previous tests (e.g. the cron scaler test) delete their
-// ScaledObjects via namespace deletion, a race with the KEDA finalizer can
-// leave stale trigger counts that never decrement.
-func waitForCronTriggersToEqual(t *testing.T, expected float64) {
-	t.Logf("Waiting for cron trigger count to reach %v cluster-wide before proceeding", expected)
-	for attempt := 1; attempt <= 120; attempt++ {
-		families := fetchAndParsePrometheusMetrics(t,
-			fmt.Sprintf("curl --insecure %s", kedaOperatorPrometheusURL))
-
-		family, ok := families["keda_trigger_registered_total"]
-		if !ok {
-			if expected == 0 {
-				t.Logf("keda_trigger_registered_total absent after %d attempts (clean state)", attempt)
-				return
-			}
-			t.Logf("Attempt %d/120: keda_trigger_registered_total not yet available", attempt)
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
-		cronCount := 0.0
-		for _, metric := range family.GetMetric() {
-			for _, label := range metric.GetLabel() {
-				if *label.Name == "type" && *label.Value == "cron" {
-					cronCount = metric.GetGauge().GetValue()
-				}
-			}
-		}
-
-		if cronCount == expected {
-			t.Logf("Cron trigger count is %v after %d attempts", expected, attempt)
-			return
-		}
-
-		if attempt == 120 {
-			t.Fatalf("Cron trigger count is %v (expected %v) after 120 attempts (10 minutes) — stale triggers from previous tests did not drain", cronCount, expected)
-		}
-		t.Logf("Attempt %d/120: cron trigger count is %v, waiting for %v...", attempt, cronCount, expected)
-		time.Sleep(5 * time.Second)
-	}
 }
 
 func testScalerMetricValue(t *testing.T) {
@@ -841,7 +971,18 @@ func testScalableObjectMetrics(t *testing.T) {
 func testScalerActiveMetric(t *testing.T) {
 	t.Log("--- testing scaler active metric ---")
 
-	family := fetchAndParsePrometheusMetrics(t, fmt.Sprintf("curl --insecure %s", kedaOperatorPrometheusURL))
+	resourceScalerLabels := map[string]string{
+		"namespace":    testNamespace,
+		"scaledObject": resourceMetricScaledObjectName,
+		"scaler":       resourceMetricScalerName,
+		"triggerIndex": "0",
+		"metric":       "cpu",
+		"type":         "scaledobject",
+	}
+
+	family := WaitForPrometheusMetric(t, "keda_scaler_active", func(family *prommodel.MetricFamily) bool {
+		return hasMetricWithLabelsAndGauge(family, resourceScalerLabels, 1)
+	})
 
 	val, ok := family["keda_scaler_active"]
 	assert.True(t, ok, "keda_scaler_active not available")
@@ -859,9 +1000,29 @@ func testScalerActiveMetric(t *testing.T) {
 			}
 		}
 		assert.Equal(t, true, found)
+		assert.True(t, hasMetricWithLabelsAndGauge(val, resourceScalerLabels, 1),
+			"expected keda_scaler_active for CPU resource scaler")
 	} else {
 		t.Errorf("metric keda_scaler_active not available")
 	}
+}
+
+func hasMetricWithLabelsAndGauge(family *prommodel.MetricFamily, expectedLabels map[string]string, expectedValue float64) bool {
+	for _, metric := range family.GetMetric() {
+		if metric.GetGauge().GetValue() == expectedValue && hasPrometheusLabels(metric.GetLabel(), expectedLabels) {
+			return true
+		}
+	}
+	return false
+}
+
+func hasPrometheusLabels(labels []*prommodel.LabelPair, expectedLabels map[string]string) bool {
+	for name, value := range expectedLabels {
+		if ExtractPrometheusLabelValue(name, labels) != value {
+			return false
+		}
+	}
+	return true
 }
 
 func testScaledObjectPausedMetric(t *testing.T, data templateData) {
@@ -909,20 +1070,13 @@ func testScaledObjectPausedMetric(t *testing.T, data templateData) {
 
 func testOperatorMetrics(t *testing.T, kc *kubernetes.Clientset, data templateData) {
 	t.Log("--- testing operator metrics ---")
-	// 120×5s = 10 min; GCP Prometheus scrape interval can exceed 30s, so 30×1s is insufficient
-	testOperatorMetricValuesWithRetry(t, kc, 120, 5)
-
-	// Wait for stale cron triggers from previous concurrent tests (e.g. the
-	// cron scaler test) to drain. keda_trigger_registered_total is cluster-wide
-	// with no namespace label, so stale counts cause a permanent mismatch
-	// between the namespace-scoped expected value and the cluster-wide actual.
-	waitForCronTriggersToEqual(t, 0)
+	testOperatorMetricValues(t, kc)
 
 	KubectlApplyWithTemplate(t, data, "cronScaledJobTemplate", cronScaledJobTemplate)
-	testOperatorMetricValuesWithRetry(t, kc, 120, 5)
+	testOperatorMetricValues(t, kc)
 
 	KubectlDeleteWithTemplate(t, data, "cronScaledJobTemplate", cronScaledJobTemplate)
-	testOperatorMetricValuesWithRetry(t, kc, 120, 5)
+	testOperatorMetricValues(t, kc)
 }
 
 func testWebhookMetrics(t *testing.T, data templateData) {
@@ -935,7 +1089,7 @@ func testWebhookMetrics(t *testing.T, data templateData) {
 	data.ScaledObjectName = scaledObjectName
 }
 
-func getOperatorMetricsManually(t *testing.T, kc *kubernetes.Clientset, targetNamespace string) (map[string]int, map[string]map[string]int) {
+func getOperatorMetricsManually(t *testing.T, kc *kubernetes.Clientset) (map[string]int, map[string]map[string]int) {
 	kedaKc := GetKedaKubernetesClient(t)
 
 	triggerTotals := make(map[string]int)
@@ -946,18 +1100,8 @@ func getOperatorMetricsManually(t *testing.T, kc *kubernetes.Clientset, targetNa
 		"cluster_trigger_authentication": {},
 	}
 
-	// If targetNamespace is specified, only count resources in that namespace
-	// This prevents pollution from stale metrics from other test namespaces
-	var namespacesToCheck []string
-	if targetNamespace != "" {
-		namespacesToCheck = []string{targetNamespace}
-	} else {
-		namespaceList, err := kc.CoreV1().Namespaces().List(context.Background(), v1.ListOptions{})
-		assert.NoErrorf(t, err, "failed to list namespaces - %s", err)
-		for _, ns := range namespaceList.Items {
-			namespacesToCheck = append(namespacesToCheck, ns.Name)
-		}
-	}
+	namespaceList, err := kc.CoreV1().Namespaces().List(context.Background(), v1.ListOptions{})
+	assert.NoErrorf(t, err, "failed to list namespaces - %s", err)
 
 	clusterTriggerAuthenticationList, err := kedaKc.ClusterTriggerAuthentications().List(context.Background(), v1.ListOptions{})
 	assert.NoErrorf(t, err, "failed to list clusterTriggerAuthentications with err - %s")
@@ -970,13 +1114,14 @@ func getOperatorMetricsManually(t *testing.T, kc *kubernetes.Clientset, targetNa
 		crTotals[metricscollector.ClusterTriggerAuthenticationResource][namespace]++
 	}
 
-	for _, namespaceName := range namespacesToCheck {
-		if namespaceName == "" {
+	for _, namespace := range namespaceList.Items {
+		namespaceName := namespace.Name
+		if namespace.Name == "" {
 			namespaceName = "default"
 		}
 
-		scaledObjectList, err := kedaKc.ScaledObjects(namespaceName).List(context.Background(), v1.ListOptions{})
-		assert.NoErrorf(t, err, "failed to list scaledObjects in namespace - %s with err - %s", namespaceName, err)
+		scaledObjectList, err := kedaKc.ScaledObjects(namespace.Name).List(context.Background(), v1.ListOptions{})
+		assert.NoErrorf(t, err, "failed to list scaledObjects in namespace - %s with err - %s", namespace.Name, err)
 
 		crTotals[metricscollector.ScaledObjectResource][namespaceName] = len(scaledObjectList.Items)
 		for _, scaledObject := range scaledObjectList.Items {
@@ -985,8 +1130,8 @@ func getOperatorMetricsManually(t *testing.T, kc *kubernetes.Clientset, targetNa
 			}
 		}
 
-		scaledJobList, err := kedaKc.ScaledJobs(namespaceName).List(context.Background(), v1.ListOptions{})
-		assert.NoErrorf(t, err, "failed to list scaledJobs in namespace - %s with err - %s", namespaceName, err)
+		scaledJobList, err := kedaKc.ScaledJobs(namespace.Name).List(context.Background(), v1.ListOptions{})
+		assert.NoErrorf(t, err, "failed to list scaledJobs in namespace - %s with err - %s", namespace.Name, err)
 
 		crTotals[metricscollector.ScaledJobResource][namespaceName] = len(scaledJobList.Items)
 		for _, scaledJob := range scaledJobList.Items {
@@ -995,8 +1140,8 @@ func getOperatorMetricsManually(t *testing.T, kc *kubernetes.Clientset, targetNa
 			}
 		}
 
-		triggerAuthList, err := kedaKc.TriggerAuthentications(namespaceName).List(context.Background(), v1.ListOptions{})
-		assert.NoErrorf(t, err, "failed to list triggerAuthentications in namespace - %s with err - %s", namespaceName, err)
+		triggerAuthList, err := kedaKc.TriggerAuthentications(namespace.Name).List(context.Background(), v1.ListOptions{})
+		assert.NoErrorf(t, err, "failed to list triggerAuthentications in namespace - %s with err - %s", namespace.Name, err)
 
 		crTotals[metricscollector.TriggerAuthenticationResource][namespaceName] = len(triggerAuthList.Items)
 	}
@@ -1017,44 +1162,8 @@ func testMetricServerMetrics(t *testing.T) {
 
 func testOperatorMetricValues(t *testing.T, kc *kubernetes.Clientset) {
 	families := fetchAndParsePrometheusMetrics(t, fmt.Sprintf("curl --insecure %s", kedaOperatorPrometheusURL))
-	expectedTriggerTotals, expectedCrTotals := getOperatorMetricsManually(t, kc, "")
+	expectedTriggerTotals, expectedCrTotals := getOperatorMetricsManually(t, kc)
 
-	checkTriggerTotalValues(t, families, expectedTriggerTotals)
-	checkCRTotalValues(t, families, expectedCrTotals)
-	checkGRPCServerMetrics(t, families)
-	checkBuildInfo(t, families)
-}
-
-// testOperatorMetricValuesWithRetry polls Prometheus metrics until they match expected values
-// or until maxAttempts is reached. This is needed after resource deletion to allow KEDA to
-// update metrics and Prometheus to scrape them.
-func testOperatorMetricValuesWithRetry(t *testing.T, kc *kubernetes.Clientset, maxAttempts int, intervalSeconds int) {
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		families := fetchAndParsePrometheusMetrics(t, fmt.Sprintf("curl --insecure %s", kedaOperatorPrometheusURL))
-		expectedTriggerTotals, expectedCrTotals := getOperatorMetricsManually(t, kc, "")
-
-		// Use non-failing validation
-		triggersMatch := validateTriggerTotalValues(t, families, expectedTriggerTotals)
-		crsMatch := validateCRTotalValues(t, families, expectedCrTotals)
-
-		if triggersMatch && crsMatch {
-			t.Logf("Metrics converged after %d attempts", attempt)
-			checkGRPCServerMetrics(t, families)
-			checkBuildInfo(t, families)
-			return
-		}
-
-		if attempt < maxAttempts {
-			t.Logf("Attempt %d/%d: Metrics don't match yet, retrying in %d seconds...",
-				attempt, maxAttempts, intervalSeconds)
-			time.Sleep(time.Duration(intervalSeconds) * time.Second)
-		}
-	}
-
-	// Final attempt with full assertions (will fail with details if metrics still don't match)
-	t.Logf("Metrics did not converge within %d attempts, running final validation with assertions", maxAttempts)
-	families := fetchAndParsePrometheusMetrics(t, fmt.Sprintf("curl --insecure %s", kedaOperatorPrometheusURL))
-	expectedTriggerTotals, expectedCrTotals := getOperatorMetricsManually(t, kc, "")
 	checkTriggerTotalValues(t, families, expectedTriggerTotals)
 	checkCRTotalValues(t, families, expectedCrTotals)
 	checkGRPCServerMetrics(t, families)
@@ -1072,13 +1181,6 @@ func checkBuildInfo(t *testing.T, families map[string]*prommodel.MetricFamily) {
 	}
 
 	latestCommit := getLatestCommit(t)
-
-	// I haven't found a way to inject the actual value via CI yet, so for now just
-	// tolerate our "we build this in CI" dummy string
-	if _, ok := os.LookupEnv("OPENSHIFT_CI"); ok {
-		latestCommit = "dummy-ci-commit-value"
-	}
-
 	expected := map[string]string{
 		"git_commit": latestCommit,
 		"goos":       "linux",
@@ -1106,85 +1208,6 @@ func getLatestCommit(t *testing.T) string {
 	return strings.Trim(out.String(), "\n")
 }
 
-// validateTriggerTotalValues checks if trigger metrics match without failing test
-func validateTriggerTotalValues(t *testing.T, families map[string]*prommodel.MetricFamily, expectedValues map[string]int) bool {
-	family, ok := families["keda_trigger_registered_total"]
-	if !ok {
-		t.Log("keda_trigger_registered_total not available")
-		return false
-	}
-
-	expected := map[string]int{}
-	maps.Copy(expected, expectedValues)
-
-	metrics := family.GetMetric()
-	for _, metric := range metrics {
-		labels := metric.GetLabel()
-		for _, label := range labels {
-			if *label.Name == labelType {
-				triggerType := *label.Value
-				if _, exists := expected[triggerType]; !exists {
-					continue // Skip unexpected trigger types
-				}
-
-				metricValue := *metric.Gauge.Value
-				expectedMetricValue := float64(expected[triggerType])
-
-				if metricValue != expectedMetricValue {
-					t.Logf("Trigger %s: expected %f, got %f", triggerType, expectedMetricValue, metricValue)
-					return false
-				}
-				delete(expected, triggerType)
-			}
-		}
-	}
-
-	if len(expected) != 0 {
-		t.Logf("Missing trigger types: %v", expected)
-		return false
-	}
-
-	return true
-}
-
-// validateCRTotalValues checks if CR metrics match without failing test
-func validateCRTotalValues(t *testing.T, families map[string]*prommodel.MetricFamily, expected map[string]map[string]int) bool {
-	family, ok := families["keda_resource_registered_total"]
-	if !ok {
-		t.Log("keda_resource_registered_total not available")
-		return false
-	}
-
-	metrics := family.GetMetric()
-	for _, metric := range metrics {
-		labels := metric.GetLabel()
-		var namespace, crType string
-		for _, label := range labels {
-			switch *label.Name {
-			case labelType:
-				crType = *label.Value
-			case namespaceString:
-				namespace = *label.Value
-			}
-		}
-
-		// Skip metrics from namespaces not in our expected map
-		if _, namespaceExists := expected[crType][namespace]; !namespaceExists {
-			continue
-		}
-
-		metricValue := *metric.Gauge.Value
-		expectedMetricValue := float64(expected[crType][namespace])
-
-		if metricValue != expectedMetricValue {
-			t.Logf("CR %s in namespace %s: expected %f, got %f", crType, namespace, expectedMetricValue, metricValue)
-			return false
-		}
-	}
-
-	return true
-}
-
 func checkTriggerTotalValues(t *testing.T, families map[string]*prommodel.MetricFamily, expectedValues map[string]int) {
 	t.Log("--- testing trigger total metrics ---")
 	expected := map[string]int{}
@@ -1201,13 +1224,6 @@ func checkTriggerTotalValues(t *testing.T, families map[string]*prommodel.Metric
 			if *label.Name == labelType {
 				triggerType := *label.Value
 				metricValue := *metric.Gauge.Value
-
-				// Only validate triggers we expect - skip stale metrics from previous tests
-				if _, exists := expected[triggerType]; !exists {
-					t.Logf("Skipping stale metric for trigger type %s (not in expected triggers)", triggerType)
-					continue
-				}
-
 				expectedMetricValue := float64(expected[triggerType])
 
 				assert.Equalf(t, expectedMetricValue, metricValue, "expected %f got %f for trigger type %s",
@@ -1233,13 +1249,6 @@ func checkTriggerTotalValues(t *testing.T, families map[string]*prommodel.Metric
 			if *label.Name == labelType {
 				triggerType := *label.Value
 				metricValue := *metric.Gauge.Value
-
-				// Only validate triggers we expect - skip stale metrics from previous tests
-				if _, exists := expected[triggerType]; !exists {
-					t.Logf("Skipping stale metric for trigger type %s (not in expected triggers)", triggerType)
-					continue
-				}
-
 				expectedMetricValue := float64(expected[triggerType])
 
 				assert.Equalf(t, expectedMetricValue, metricValue, "expected %f got %f for trigger type %s",
@@ -1275,12 +1284,6 @@ func checkCRTotalValues(t *testing.T, families map[string]*prommodel.MetricFamil
 			}
 		}
 
-		// Skip metrics from namespaces not in our expected map (stale metrics from previous tests)
-		if _, namespaceExists := expected[crType][namespace]; !namespaceExists {
-			t.Logf("Skipping stale metric for cr type %s in namespace %s (not in expected namespaces)", crType, namespace)
-			continue
-		}
-
 		metricValue := *metric.Gauge.Value
 		expectedMetricValue := float64(expected[crType][namespace])
 
@@ -1305,12 +1308,6 @@ func checkCRTotalValues(t *testing.T, families map[string]*prommodel.MetricFamil
 			case namespaceString:
 				namespace = *label.Value
 			}
-		}
-
-		// Skip metrics from namespaces not in our expected map (stale metrics from previous tests)
-		if _, namespaceExists := expected[crType][namespace]; !namespaceExists {
-			t.Logf("Skipping stale metric for cr type %s in namespace %s (not in expected namespaces)", crType, namespace)
-			continue
 		}
 
 		metricValue := *metric.Gauge.Value
@@ -1641,4 +1638,102 @@ func testCloudEventEmittedError(t *testing.T, data templateData) {
 	metric := families["keda_cloudeventsource_events_emitted_total"]
 
 	assert.True(t, familyValidator(metric))
+}
+
+func testEmptyUpstreamResponse(t *testing.T, data templateData) {
+	t.Log("--- testing empty upstream response metric ---")
+
+	kc := GetKubernetesClient(t)
+
+	KubectlApplyWithTemplate(t, data, "emptyUpstreamPrometheusConfigMapTemplate", emptyUpstreamPrometheusConfigMapTemplate)
+	KubectlApplyWithTemplate(t, data, "emptyUpstreamPrometheusDeploymentTemplate", emptyUpstreamPrometheusDeploymentTemplate)
+	KubectlApplyWithTemplate(t, data, "emptyUpstreamPrometheusServiceTemplate", emptyUpstreamPrometheusServiceTemplate)
+
+	assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, "prometheus-empty-upstream", testNamespace, 1, 60, 3),
+		"prometheus-empty-upstream deployment should be ready")
+
+	KubectlDeleteWithTemplate(t, data, "scaledObjectTemplate", scaledObjectTemplate)
+	KubectlApplyWithTemplate(t, data, "emptyUpstreamResponseScaledObjectTemplate", emptyUpstreamResponseScaledObjectTemplate)
+	defer func() {
+		KubectlDeleteWithTemplate(t, data, "emptyUpstreamResponseScaledObjectTemplate", emptyUpstreamResponseScaledObjectTemplate)
+		KubectlApplyWithTemplate(t, data, "scaledObjectTemplate", scaledObjectTemplate)
+		KubectlDeleteWithTemplate(t, data, "emptyUpstreamPrometheusServiceTemplate", emptyUpstreamPrometheusServiceTemplate)
+		KubectlDeleteWithTemplate(t, data, "emptyUpstreamPrometheusDeploymentTemplate", emptyUpstreamPrometheusDeploymentTemplate)
+		KubectlDeleteWithTemplate(t, data, "emptyUpstreamPrometheusConfigMapTemplate", emptyUpstreamPrometheusConfigMapTemplate)
+	}()
+
+	familyValidator := func(family *prommodel.MetricFamily) bool {
+		for _, metric := range family.GetMetric() {
+			labels := metric.GetLabel()
+			if ExtractPrometheusLabelValue("namespace", labels) == testNamespace &&
+				ExtractPrometheusLabelValue("scaledResource", labels) == emptyUpstreamScaledObjectName &&
+				ExtractPrometheusLabelValue("triggerName", labels) == "empty-upstream-trigger" &&
+				ExtractPrometheusLabelValue("metricName", labels) == "s0-prometheus" &&
+				ExtractPrometheusLabelValue("resourceType", labels) == "ScaledObject" &&
+				ExtractPrometheusLabelValue("ignoreNullValues", labels) == "false" &&
+				metric.GetCounter().GetValue() >= 1 {
+				return true
+			}
+		}
+		return false
+	}
+
+	families := WaitForPrometheusMetric(t, "keda_scaler_empty_upstream_responses_total", familyValidator)
+	metric := families["keda_scaler_empty_upstream_responses_total"]
+
+	assert.True(t, familyValidator(metric))
+}
+
+func testHTTPClientMetrics(t *testing.T, data templateData) {
+	t.Log("--- testing HTTP client metrics ---")
+
+	// The dedicated HTTP client metrics ScaledObject uses a prometheus-type
+	// scaler that makes real HTTP requests on every poll interval, so its
+	// records should be present once at least one poll cycle has completed.
+	KubectlDeleteWithTemplate(t, data, "scaledObjectTemplate", scaledObjectTemplate)
+	KubectlApplyWithTemplate(t, data, "httpClientScaledObjectTemplate", httpClientScaledObjectTemplate)
+	defer func() {
+		KubectlDeleteWithTemplate(t, data, "httpClientScaledObjectTemplate", httpClientScaledObjectTemplate)
+		KubectlApplyWithTemplate(t, data, "scaledObjectTemplate", scaledObjectTemplate)
+	}()
+
+	matchLabels := func(labels []*prommodel.LabelPair) bool {
+		return ExtractPrometheusLabelValue("namespace", labels) == testNamespace &&
+			ExtractPrometheusLabelValue("scaled_resource", labels) == data.HTTPClientScaledObjectName &&
+			ExtractPrometheusLabelValue("scaler", labels) == "prometheus" &&
+			ExtractPrometheusLabelValue("trigger_name", labels) == data.HTTPClientScalerName &&
+			ExtractPrometheusLabelValue("metric_name", labels) == "s0-prometheus"
+	}
+
+	familyValidator := func(family *prommodel.MetricFamily) bool {
+		for _, metric := range family.GetMetric() {
+			if matchLabels(metric.GetLabel()) && metric.GetCounter().GetValue() >= 1 {
+				return true
+			}
+		}
+		return false
+	}
+
+	families := WaitForPrometheusMetric(t, "keda_scaler_http_requests_total", familyValidator)
+	assert.True(t, familyValidator(families["keda_scaler_http_requests_total"]),
+		"expected keda_scaler_http_requests_total with namespace=%s, scaled_resource=%s, scaler=prometheus, trigger_name=%s, metric_name=s0-prometheus",
+		testNamespace, data.HTTPClientScaledObjectName, data.HTTPClientScalerName)
+
+	matchHistogramLabels := func(labels []*prommodel.LabelPair) bool {
+		return ExtractPrometheusLabelValue("scaler", labels) == "prometheus"
+	}
+	family, ok := families["keda_scaler_http_request_duration_seconds"]
+	assert.True(t, ok, "keda_scaler_http_request_duration_seconds not present")
+	if ok {
+		var found bool
+		for _, metric := range family.GetMetric() {
+			if matchHistogramLabels(metric.GetLabel()) {
+				assert.Greater(t, metric.GetHistogram().GetSampleCount(), uint64(0),
+					"keda_scaler_http_request_duration_seconds sample count should be > 0")
+				found = true
+				break
+			}
+		}
+		assert.True(t, found, "expected keda_scaler_http_request_duration_seconds histogram for prometheus scaler")
+	}
 }

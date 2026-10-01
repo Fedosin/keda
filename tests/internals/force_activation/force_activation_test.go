@@ -16,7 +16,7 @@ import (
 // Load environment variables from .env file
 
 const (
-	testName = "force-activation-test"
+	testName = "pause-scalein-test"
 )
 
 var (

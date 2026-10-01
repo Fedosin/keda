@@ -151,16 +151,14 @@ func testScaleOut(t *testing.T, kc *kubernetes.Clientset) {
 	// scale monitored deployment to maxReplicaCount - 2 replicas
 	replicas := maxReplicaCount - 2
 	KubernetesScaleDeployment(t, kc, monitoredDeploymentName, int64(replicas), testNamespace)
-	assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, monitoredDeploymentName, testNamespace, replicas, 60, 5),
-		"monitored deployment should be ready before operator disruption")
 	saveLogs(t, kc, operatorLogName, operatorLabelSelector, kedaNamespace)
 	DeletePodsInNamespaceBySelector(t, kc, operatorLabelSelector, kedaNamespace)
 	var wg sync.WaitGroup
 	wg.Add(scaledObjectCount)
 	for i := 0; i < scaledObjectCount; i++ {
 		go func(index int) {
-			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 5),
-				fmt.Sprintf("replica count should be %d after 5 minutes", replicas))
+			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 3),
+				fmt.Sprintf("replica count should be %d after 3 minutes", replicas))
 			wg.Done()
 		}(i)
 	}
@@ -169,15 +167,13 @@ func testScaleOut(t *testing.T, kc *kubernetes.Clientset) {
 	// scale monitored deployment to maxReplicaCount - 1 replicas
 	replicas = maxReplicaCount - 1
 	KubernetesScaleDeployment(t, kc, monitoredDeploymentName, int64(replicas), testNamespace)
-	assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, monitoredDeploymentName, testNamespace, replicas, 60, 5),
-		"monitored deployment should be ready before operator disruption")
 	saveLogs(t, kc, operatorLogName, operatorLabelSelector, kedaNamespace)
 	DeletePodsInNamespaceBySelector(t, kc, operatorLabelSelector, kedaNamespace)
 	wg.Add(scaledObjectCount)
 	for i := 0; i < scaledObjectCount; i++ {
 		go func(index int) {
-			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 5),
-				fmt.Sprintf("replica count should be %d after 5 minutes", replicas))
+			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 3),
+				fmt.Sprintf("replica count should be %d after 3 minutes", replicas))
 			wg.Done()
 		}(i)
 	}
@@ -186,15 +182,13 @@ func testScaleOut(t *testing.T, kc *kubernetes.Clientset) {
 	// scale monitored deployment to maxReplicaCount replicas
 	replicas = maxReplicaCount
 	KubernetesScaleDeployment(t, kc, monitoredDeploymentName, int64(replicas), testNamespace)
-	assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, monitoredDeploymentName, testNamespace, replicas, 60, 5),
-		"monitored deployment should be ready before metrics-server disruption")
 	saveLogs(t, kc, msLogName, msLabelSelector, kedaNamespace)
 	DeletePodsInNamespaceBySelector(t, kc, msLabelSelector, kedaNamespace)
 	wg.Add(scaledObjectCount)
 	for i := 0; i < scaledObjectCount; i++ {
 		go func(index int) {
-			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 5),
-				fmt.Sprintf("replica count should be %d after 5 minutes", replicas))
+			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 3),
+				fmt.Sprintf("replica count should be %d after 3 minutes", replicas))
 			wg.Done()
 		}(i)
 	}
@@ -205,8 +199,6 @@ func testScaleIn(t *testing.T, kc *kubernetes.Clientset) {
 	// scale monitored deployment to minReplicaCount + 1 replicas
 	replicas := minReplicaCount + 1
 	KubernetesScaleDeployment(t, kc, monitoredDeploymentName, int64(replicas), testNamespace)
-	assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, monitoredDeploymentName, testNamespace, replicas, 60, 5),
-		"monitored deployment should be ready before operator/metrics-server disruption")
 	saveLogs(t, kc, operatorLogName, operatorLabelSelector, kedaNamespace)
 	DeletePodsInNamespaceBySelector(t, kc, operatorLabelSelector, kedaNamespace)
 	saveLogs(t, kc, msLogName, msLabelSelector, kedaNamespace)
@@ -215,8 +207,8 @@ func testScaleIn(t *testing.T, kc *kubernetes.Clientset) {
 	wg.Add(scaledObjectCount)
 	for i := 0; i < scaledObjectCount; i++ {
 		go func(index int) {
-			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 5),
-				fmt.Sprintf("replica count should be %d after 5 minutes", replicas))
+			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 3),
+				fmt.Sprintf("replica count should be %d after 3 minutes", replicas))
 			wg.Done()
 		}(i)
 	}
@@ -225,15 +217,13 @@ func testScaleIn(t *testing.T, kc *kubernetes.Clientset) {
 	// scale monitored deployment to minReplicaCount replicas
 	replicas = minReplicaCount
 	KubernetesScaleDeployment(t, kc, monitoredDeploymentName, int64(replicas), testNamespace)
-	assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, monitoredDeploymentName, testNamespace, replicas, 60, 5),
-		"monitored deployment should be ready before operator disruption")
 	saveLogs(t, kc, operatorLogName, operatorLabelSelector, kedaNamespace)
 	DeletePodsInNamespaceBySelector(t, kc, operatorLabelSelector, kedaNamespace)
 	wg.Add(scaledObjectCount)
 	for i := 0; i < scaledObjectCount; i++ {
 		go func(index int) {
-			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 5),
-				fmt.Sprintf("replica count should be %d after 5 minutes", replicas))
+			assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, fmt.Sprintf(sutDeploymentName, index), testNamespace, replicas, 60, 3),
+				fmt.Sprintf("replica count should be %d after 3 minutes", replicas))
 			wg.Done()
 		}(i)
 	}

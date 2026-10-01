@@ -15,8 +15,7 @@
           mountPath: /mnt/auth
       securityContext:
         runAsNonRoot: true
-        # This doesn't work with openshift SCCs, so we remove this downstream
-        #runAsUser: 1000
+        runAsUser: 1000
 - op: add
   path: /spec/template/spec/containers/0/args/-
   value: --filepath-auth-root-path=/mnt/auth

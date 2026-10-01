@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	. "github.com/kedacore/keda/v2/tests/helper"
 )
@@ -263,11 +262,11 @@ func testScaledWorkloadByOtherScaledObject(t *testing.T, data templateData) {
 
 	data.ScaledObjectName = scaledObject1Name
 	err := KubectlApplyWithErrors(t, data, "scaledObjectTemplate", scaledObjectTemplate)
-	require.NoErrorf(t, err, "cannot deploy the scaledObject - %s", err)
+	assert.NoErrorf(t, err, "cannot deploy the scaledObject - %s", err)
 
 	data.ScaledObjectName = scaledObject2Name
 	err = KubectlApplyWithErrors(t, data, "scaledObjectTemplate", scaledObjectTemplate)
-	require.Errorf(t, err, "can deploy the scaledObject - %s", err)
+	assert.Errorf(t, err, "can deploy the scaledObject - %s", err)
 	assert.Contains(t, err.Error(), fmt.Sprintf("the workload '%s' of type 'apps/v1.Deployment' is already managed by the ScaledObject '%s", deploymentName, scaledObject1Name))
 
 	data.ScaledObjectName = scaledObject1Name
@@ -281,12 +280,12 @@ func testManagedHpaByOtherScaledObject(t *testing.T, data templateData) {
 
 	data.ScaledObjectName = scaledObject1Name
 	err := KubectlApplyWithErrors(t, data, "scaledObjectTemplate", customHpaScaledObjectTemplate)
-	require.NoErrorf(t, err, "cannot deploy the scaledObject - %s", err)
+	assert.NoErrorf(t, err, "cannot deploy the scaledObject - %s", err)
 
 	data.ScaledObjectName = scaledObject2Name
 	data.DeploymentName = fmt.Sprintf("%s-other-deployment", testName)
 	err = KubectlApplyWithErrors(t, data, "scaledObjectTemplate", customHpaScaledObjectTemplate)
-	require.Errorf(t, err, "can deploy the scaledObject - %s", err)
+	assert.Errorf(t, err, "can deploy the scaledObject - %s", err)
 	assert.Contains(t, err.Error(), fmt.Sprintf("the HPA '%s' is already managed by the ScaledObject '%s", hpaName, scaledObject1Name))
 
 	data.ScaledObjectName = scaledObject1Name
@@ -298,11 +297,11 @@ func testScaledWorkloadByOtherHpa(t *testing.T, data templateData) {
 
 	data.HpaName = hpaName
 	err := KubectlApplyWithErrors(t, data, "hpaTemplate", hpaTemplate)
-	require.NoErrorf(t, err, "cannot deploy the hpa - %s", err)
+	assert.NoErrorf(t, err, "cannot deploy the hpa - %s", err)
 
 	data.ScaledObjectName = scaledObject1Name
 	err = KubectlApplyWithErrors(t, data, "scaledObjectTemplate", scaledObjectTemplate)
-	require.Errorf(t, err, "can deploy the scaledObject - %s", err)
+	assert.Errorf(t, err, "can deploy the scaledObject - %s", err)
 	assert.Contains(t, err.Error(), fmt.Sprintf("the workload '%s' of type 'apps/v1.Deployment' is already managed by the hpa '%s", deploymentName, hpaName))
 
 	KubectlDeleteWithTemplate(t, data, "hpaTemplate", hpaTemplate)
@@ -328,7 +327,7 @@ func testMissingCPU(t *testing.T, data templateData) {
 
 	data.ScaledObjectName = scaledObject1Name
 	err := KubectlApplyWithErrors(t, data, "scaledObjectTemplate", cpuScaledObjectTemplate)
-	require.Errorf(t, err, "can deploy the scaledObject - %s", err)
+	assert.Errorf(t, err, "can deploy the scaledObject - %s", err)
 	assert.Contains(t, err.Error(), fmt.Sprintf("the scaledobject has a cpu trigger but the container %s doesn't have the cpu request defined", deploymentName))
 }
 
@@ -337,7 +336,7 @@ func testMissingMemory(t *testing.T, data templateData) {
 
 	data.ScaledObjectName = scaledObject1Name
 	err := KubectlApplyWithErrors(t, data, "scaledObjectTemplate", memoryScaledObjectTemplate)
-	require.Errorf(t, err, "can deploy the scaledObject - %s", err)
+	assert.Errorf(t, err, "can deploy the scaledObject - %s", err)
 	assert.Contains(t, err.Error(), fmt.Sprintf("the scaledobject has a memory trigger but the container %s doesn't have the memory request defined", deploymentName))
 }
 
@@ -405,7 +404,7 @@ func testTriggersWithEmptyArray(t *testing.T, data templateData) {
 	t.Log("--- triggers with empty array ---")
 
 	err := KubectlApplyWithErrors(t, data, "emptyTriggersTemplate", emptyTriggersTemplate)
-	require.Errorf(t, err, "can deploy the scaledObject - %s", err)
+	assert.Errorf(t, err, "can deploy the scaledObject - %s", err)
 	assert.Contains(t, err.Error(), "spec.triggers in body should have at least 1 items")
 }
 

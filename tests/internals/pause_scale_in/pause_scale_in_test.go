@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	. "github.com/kedacore/keda/v2/tests/helper"
-	"github.com/stretchr/testify/assert"
 )
 
 // Load environment variables from .env file
@@ -111,13 +110,8 @@ func TestScaler(t *testing.T) {
 
 	CreateKubernetesResources(t, kc, testNamespace, data, templates)
 
-	// Wait for deployment to reach target replica count before checking stability
-	// This prevents a race where we start checking before pods have finished starting up
-	assert.True(t, WaitForDeploymentReplicaReadyCount(t, kc, deploymentName, testNamespace, 2, 60, 2),
-		"deployment replica count should be 2 after 2 minutes")
-
-	// Assert that the deployment does not scale down (paused-scale-in should prevent this)
-	AssertReplicaCountNotChangeDuringTimePeriod(t, kc, deploymentName, testNamespace, 2, 120)
+	// assert that the deployment did not scale down after one minute
+	AssertReplicaCountNotChangeDuringTimePeriod(t, kc, deploymentName, testNamespace, 2, 60)
 
 	// cleanup
 	DeleteKubernetesResources(t, testNamespace, data, templates)
