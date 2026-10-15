@@ -26,7 +26,6 @@ func (f *FindCoordinatorRequest) encode(pe packetEncoder) error {
 		pe.putInt8(int8(f.CoordinatorType))
 	}
 
-	pe.putEmptyTaggedFieldArray()
 	return nil
 }
 
@@ -45,8 +44,7 @@ func (f *FindCoordinatorRequest) decode(pd packetDecoder, version int16) (err er
 		f.CoordinatorType = CoordinatorType(coordinatorType)
 	}
 
-	_, err = pd.getEmptyTaggedFieldArray()
-	return err
+	return nil
 }
 
 func (f *FindCoordinatorRequest) key() int16 {
@@ -58,28 +56,15 @@ func (f *FindCoordinatorRequest) version() int16 {
 }
 
 func (r *FindCoordinatorRequest) headerVersion() int16 {
-	if r.Version >= 3 {
-		return 2
-	}
 	return 1
 }
 
 func (f *FindCoordinatorRequest) isValidVersion() bool {
-	return f.Version >= 0 && f.Version <= 3
-}
-
-func (f *FindCoordinatorRequest) isFlexible() bool {
-	return f.isFlexibleVersion(f.Version)
-}
-
-func (f *FindCoordinatorRequest) isFlexibleVersion(version int16) bool {
-	return version >= 3
+	return f.Version >= 0 && f.Version <= 2
 }
 
 func (f *FindCoordinatorRequest) requiredVersion() KafkaVersion {
 	switch f.Version {
-	case 3:
-		return V2_4_0_0
 	case 2:
 		return V2_0_0_0
 	case 1:

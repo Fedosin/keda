@@ -329,10 +329,6 @@ func (om *offsetManager) constructRequest() *OffsetCommitRequest {
 		r.Version = 7
 		r.GroupInstanceId = om.groupInstanceId
 	}
-	// Version 8 is the first flexible version.
-	if om.conf.Version.IsAtLeast(V2_4_0_0) {
-		r.Version = 8
-	}
 
 	// commit timestamp was only briefly supported in V1 where we set it to
 	// ReceiveTime (-1) to tell the broker to set it to the time when the commit
@@ -374,10 +370,9 @@ func (om *offsetManager) constructRequest() *OffsetCommitRequest {
 }
 
 func (om *offsetManager) handleResponse(broker *Broker, req *OffsetCommitRequest, resp *OffsetCommitResponse) {
-	// release coordinator after dropping pomsLock to avoid lock inversion (#3191)
-	shouldRelease := false
-
 	om.pomsLock.RLock()
+	defer om.pomsLock.RUnlock()
+
 	for _, topicManagers := range om.poms {
 		for _, pom := range topicManagers {
 			if req.blocks[pom.topic] == nil || req.blocks[pom.topic][pom.partition] == nil {
@@ -403,7 +398,7 @@ func (om *offsetManager) handleResponse(broker *Broker, req *OffsetCommitRequest
 			case ErrNotLeaderForPartition, ErrLeaderNotAvailable,
 				ErrConsumerCoordinatorNotAvailable, ErrNotCoordinatorForConsumer:
 				// not a critical error, we just need to redispatch
-				shouldRelease = true
+				om.releaseCoordinator(broker)
 			case ErrOffsetMetadataTooLarge, ErrInvalidCommitOffsetSize:
 				// nothing we can do about this, just tell the user and carry on
 				pom.handleError(err)
@@ -422,14 +417,9 @@ func (om *offsetManager) handleResponse(broker *Broker, req *OffsetCommitRequest
 			default:
 				// dunno, tell the user and try redispatching
 				pom.handleError(err)
-				shouldRelease = true
+				om.releaseCoordinator(broker)
 			}
 		}
-	}
-	om.pomsLock.RUnlock()
-
-	if shouldRelease {
-		om.releaseCoordinator(broker)
 	}
 }
 

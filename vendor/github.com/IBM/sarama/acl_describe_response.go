@@ -33,12 +33,10 @@ func (d *DescribeAclsResponse) encode(pe packetEncoder) error {
 		}
 	}
 
-	pe.putEmptyTaggedFieldArray()
 	return nil
 }
 
 func (d *DescribeAclsResponse) decode(pd packetDecoder, version int16) (err error) {
-	d.Version = version
 	if d.ThrottleTime, err = pd.getDurationMs(); err != nil {
 		return err
 	}
@@ -48,8 +46,12 @@ func (d *DescribeAclsResponse) decode(pd packetDecoder, version int16) (err erro
 		return err
 	}
 
-	if d.ErrMsg, err = pd.getNullableString(); err != nil {
+	errmsg, err := pd.getString()
+	if err != nil {
 		return err
+	}
+	if errmsg != "" {
+		d.ErrMsg = &errmsg
 	}
 
 	n, err := pd.getArrayLength()
@@ -65,8 +67,7 @@ func (d *DescribeAclsResponse) decode(pd packetDecoder, version int16) (err erro
 		}
 	}
 
-	_, err = pd.getEmptyTaggedFieldArray()
-	return err
+	return nil
 }
 
 func (d *DescribeAclsResponse) key() int16 {
@@ -78,28 +79,15 @@ func (d *DescribeAclsResponse) version() int16 {
 }
 
 func (d *DescribeAclsResponse) headerVersion() int16 {
-	if d.Version >= 2 {
-		return 1
-	}
 	return 0
 }
 
 func (d *DescribeAclsResponse) isValidVersion() bool {
-	return d.Version >= 0 && d.Version <= 2
-}
-
-func (d *DescribeAclsResponse) isFlexible() bool {
-	return d.isFlexibleVersion(d.Version)
-}
-
-func (d *DescribeAclsResponse) isFlexibleVersion(version int16) bool {
-	return version >= 2
+	return d.Version >= 0 && d.Version <= 1
 }
 
 func (d *DescribeAclsResponse) requiredVersion() KafkaVersion {
 	switch d.Version {
-	case 2:
-		return V2_5_0_0
 	case 1:
 		return V2_0_0_0
 	default:

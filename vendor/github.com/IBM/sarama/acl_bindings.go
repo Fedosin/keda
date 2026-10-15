@@ -14,7 +14,7 @@ func (r *Resource) encode(pe packetEncoder, version int16) error {
 		return err
 	}
 
-	if version >= 1 {
+	if version == 1 {
 		if r.ResourcePatternType == AclPatternUnknown {
 			Logger.Print("Cannot encode an unknown resource pattern type, using Literal instead")
 			r.ResourcePatternType = AclPatternLiteral
@@ -35,7 +35,7 @@ func (r *Resource) decode(pd packetDecoder, version int16) (err error) {
 	if r.ResourceName, err = pd.getString(); err != nil {
 		return err
 	}
-	if version >= 1 {
+	if version == 1 {
 		pattern, err := pd.getInt8()
 		if err != nil {
 			return err
@@ -66,7 +66,6 @@ func (a *Acl) encode(pe packetEncoder) error {
 	pe.putInt8(int8(a.Operation))
 	pe.putInt8(int8(a.PermissionType))
 
-	pe.putEmptyTaggedFieldArray()
 	return nil
 }
 
@@ -91,8 +90,7 @@ func (a *Acl) decode(pd packetDecoder, version int16) (err error) {
 	}
 	a.PermissionType = AclPermissionType(permissionType)
 
-	_, err = pd.getEmptyTaggedFieldArray()
-	return err
+	return nil
 }
 
 // ResourceAcls is an acl resource type
@@ -115,7 +113,6 @@ func (r *ResourceAcls) encode(pe packetEncoder, version int16) error {
 		}
 	}
 
-	pe.putEmptyTaggedFieldArray()
 	return nil
 }
 
@@ -137,6 +134,5 @@ func (r *ResourceAcls) decode(pd packetDecoder, version int16) error {
 		}
 	}
 
-	_, err = pd.getEmptyTaggedFieldArray()
-	return err
+	return nil
 }

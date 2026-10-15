@@ -31,7 +31,6 @@ func (c *CreatePartitionsRequest) encode(pe packetEncoder) error {
 
 	pe.putBool(c.ValidateOnly)
 
-	pe.putEmptyTaggedFieldArray()
 	return nil
 }
 
@@ -62,8 +61,7 @@ func (c *CreatePartitionsRequest) decode(pd packetDecoder, version int16) (err e
 		return err
 	}
 
-	_, err = pd.getEmptyTaggedFieldArray()
-	return err
+	return nil
 }
 
 func (r *CreatePartitionsRequest) key() int16 {
@@ -75,28 +73,15 @@ func (r *CreatePartitionsRequest) version() int16 {
 }
 
 func (r *CreatePartitionsRequest) headerVersion() int16 {
-	if r.Version >= 2 {
-		return 2
-	}
 	return 1
 }
 
 func (r *CreatePartitionsRequest) isValidVersion() bool {
-	return r.Version >= 0 && r.Version <= 2
-}
-
-func (r *CreatePartitionsRequest) isFlexible() bool {
-	return r.isFlexibleVersion(r.Version)
-}
-
-func (r *CreatePartitionsRequest) isFlexibleVersion(version int16) bool {
-	return version >= 2
+	return r.Version >= 0 && r.Version <= 1
 }
 
 func (r *CreatePartitionsRequest) requiredVersion() KafkaVersion {
 	switch r.Version {
-	case 2:
-		return V2_5_0_0
 	case 1:
 		return V2_0_0_0
 	case 0:
@@ -115,10 +100,7 @@ func (t *TopicPartition) encode(pe packetEncoder) error {
 	pe.putInt32(t.Count)
 
 	if len(t.Assignment) == 0 {
-		if err := pe.putArrayLength(-1); err != nil {
-			return err
-		}
-		pe.putEmptyTaggedFieldArray()
+		pe.putInt32(-1)
 		return nil
 	}
 
@@ -130,10 +112,8 @@ func (t *TopicPartition) encode(pe packetEncoder) error {
 		if err := pe.putInt32Array(assign); err != nil {
 			return err
 		}
-		pe.putEmptyTaggedFieldArray()
 	}
 
-	pe.putEmptyTaggedFieldArray()
 	return nil
 }
 
@@ -142,26 +122,20 @@ func (t *TopicPartition) decode(pd packetDecoder, version int16) (err error) {
 		return err
 	}
 
-	n, err := pd.getArrayLength()
+	n, err := pd.getInt32()
 	if err != nil {
 		return err
 	}
 	if n <= 0 {
-		_, err = pd.getEmptyTaggedFieldArray()
-		return err
+		return nil
 	}
 	t.Assignment = make([][]int32, n)
 
-	for i := 0; i < n; i++ {
+	for i := 0; i < int(n); i++ {
 		if t.Assignment[i], err = pd.getInt32Array(); err != nil {
-			return err
-		}
-		_, err = pd.getEmptyTaggedFieldArray()
-		if err != nil {
 			return err
 		}
 	}
 
-	_, err = pd.getEmptyTaggedFieldArray()
-	return err
+	return nil
 }
